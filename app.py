@@ -5,7 +5,7 @@ from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
 import Dateaubase
-
+import PlottingTools
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -35,22 +35,23 @@ def draw_example_graph(n):
     End = Dateaubase.date_to_epoch('2017-10-01 12:00:00')
     Location = 'Primary settling tank effluent'
     Project = 'pilEAUte'
-    param_list = ['COD','CODf','NH4-N','K']
-    equip_list = ['Spectro_010','Spectro_010','Ammo_005','Ammo_005']
+    param_list = ['COD', 'CODf', 'NH4-N', 'K']
+    equip_list = ['Spectro_010', 'Spectro_010', 'Ammo_005', 'Ammo_005']
 
-    extract_list={}
+    extract_list = {}
     for i in range(len(param_list)):
         extract_list[i] = {
-            'Start':Start,
-            'End':End,
-            'Project':Project,
-            'Location':Location,
-            'Parameter':param_list[i],
-            'Equipment':equip_list[i]
+            'Start': Start,
+            'End': End,
+            'Project': Project,
+            'Location': Location,
+            'Parameter': param_list[i],
+            'Equipment': equip_list[i]
         }
     df = Dateaubase.extract_data(conn, extract_list)
     fig = PlottingTools.extract_plotly(df)
     return fig
+
 
 if __name__ == '__main__':
     app.run_server(debug=True)
