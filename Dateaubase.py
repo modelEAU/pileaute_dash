@@ -1,11 +1,9 @@
 # ## ATTENTION: This script only works on Windows with
 # ## a VPN connection opened to the DatEAUbase Server
-import getpass
 import pandas as pd
 import pyodbc
 import time
-import numpy as np
-from matplotlib import pyplot as plt
+
 
 def create_connection():
     with open('login.txt') as f:
@@ -49,6 +47,7 @@ FROM project
 ORDER BY Project_name ASC;'''
     df = pd.read_sql(query, connection)
     return df
+
 
 def get_locations(connection, project):
     query = '''
@@ -100,6 +99,7 @@ def get_parameters(connection, project, location, equipment):
     parameters = pd.read_sql(query, connection)
     return parameters
 
+
 def get_units(connection, project, location, equipment, parameter):
     query = '''
     SELECT dbo.unit.Unit
@@ -121,6 +121,7 @@ def get_units(connection, project, location, equipment, parameter):
     '''.format(project, location, equipment, parameter)
     units = pd.read_sql(query, connection)
     return units
+
 
 def build_query(start, end, project, location, equipment, parameter):
     return '''SELECT dbo.value.Timestamp,
@@ -147,6 +148,7 @@ AND dbo.project.Project_name = \'{}\'
 order by dbo.value.Value_ID;
 '''.format(start, end, location, parameter, equipment, project)
 
+
 def get_span(connection, project, location, equipment, parameter):
     query = '''SELECT  MIN(dbo.value.Timestamp), MAX(dbo.value.Timestamp)
     FROM dbo.parameter
@@ -168,6 +170,7 @@ def get_span(connection, project, location, equipment, parameter):
     last = epoch_to_pandas_datetime(df.at[0, 'last'])
     return first, last
 
+
 def clean_up_pulled_data(df, project, location, equipment, parameter):
     df['datetime'] = [epoch_to_pandas_datetime(x) for x in df.Timestamp]
     df.sort_values('datetime', axis=0, inplace=True)
@@ -175,14 +178,16 @@ def clean_up_pulled_data(df, project, location, equipment, parameter):
     location = location.replace('-', '_')
     parameter = parameter.replace('-', '_')
     equipment = equipment.replace('-', '_')
-    if len(df) == 0:
-        Unit = 'None'
-    else:
-        Unit = df.Unit[0]
-    df.drop(['Timestamp', 'Project_name', 'par', 'Unit', 'equipment', 'Sampling_location'], axis=1, inplace=True)
-    df.rename(columns={
-        'measurement': '{}-{}-{}-{}-{}'.format(project, location, equipment, parameter, Unit),
-    }, inplace=True)
+    df.drop(
+        ['Timestamp', 'Project_name', 'par', 'Unit', 'equipment', 'Sampling_location'],
+        axis=1,
+        inplace=True
+    )
+    df.rename(
+        columns={
+            'measurement': '{}-{}-{}-{}'.format(project, location, equipment, parameter),
+        },
+        inplace=True)
     df.set_index('datetime', inplace=True, drop=True)
     df = df[~df.index.duplicated(keep='first')]
     return df
@@ -220,20 +225,6 @@ def extract_data(connexion, extract_list):
             df = df[~df.index.duplicated(keep='first')]
     return df
 
-def plot_pulled_data(df):
-    from pandas.plotting import register_matplotlib_converters
-    register_matplotlib_converters()
-    sensors = []
-    units = []
-    plt.figure(figsize=(12, 8))
-    for column in df.columns:
-        sensors.append(column.split('-')[-2])
-        units.append(column.split('-')[-1])
-        plt.plot(df[column], alpha=0.8)
-    sensors = [sensor.replace('_', '-') for sensor in sensors]
-    plt.legend([sensors[i] + ' (' + units[i] + ')' for i in range(len(sensors))])
-    plt.xticks(rotation=45)
-    plt.show()
 
 '''cursor, conn = create_connection()
 Start = date_to_epoch('2017-09-01 12:00:00')
@@ -257,5 +248,3 @@ for i in range(len(param_list)):
 print('ready to extract')
 df = extract_data(conn, extract_list)
 print(len(df))'''
-
-
