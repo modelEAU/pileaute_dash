@@ -16,7 +16,7 @@ pio.templates.default = "plotly_white"
 
 NEW_DATA_INTERVAL = 30  # in seconds
 DAYS_OF_DATA = 1
-MINUTES_OF_DATA = 60
+MINUTES_OF_DATA = 300
 STORE_MAX_LENGTH = DAYS_OF_DATA * 24 * 60 * 60  # worst-case of sensor that updates every second
 
 
@@ -28,15 +28,35 @@ app.layout = html.Div(
         dcc.Store(id='avn-db-store'),
         html.Div(
             children=[
-                html.Img(src='assets/LOGO_modelEAU_2016.png', width=150),
-            ]
+                html.Img(
+                    src='assets/flowsheetPilEAUte_with_logo.png',
+                    style={'align': 'middle'}
+                ),
+            ],
+            style={'textAlign': 'center', 'padding-left':'10%', 'padding-right':'10%', 'width': '80%'}
         ),
-        html.H1(children=dcc.Markdown('**AvN Performance**')),
         html.Div(
-            children='',
+            children=[
+                html.Div(
+                    id='graph-div',
+                    children=[
+                        html.H2(dcc.Markdown("Online data"), style={'textAlign': 'left'}),
+                        dcc.Graph(id='avn-graph', animate=True)
+                    ],
+                    style={'display': 'inline-block', 'align-self': 'left', 'width': '70%'}
+                ),
+                html.Div(
+                    id='table-div',
+                    children=[
+                        html.H2(dcc.Markdown("Stats"), style={'textAlign': 'left'})
+                        
+                    ],
+                    style={'display': 'inline-block', 'align-self': 'right', 'width': '20%'}
+                ),
+            ],
+            style={'textAlign': 'center', 'padding-left':'10%', 'padding-right':'10%', 'width': '80%'}
         ),
-        dcc.Graph(id='avn-graph', animate=True),
-    ]
+    ],
 )
 
 
@@ -45,30 +65,29 @@ app.layout = html.Div(
     [Input('refresh-interval', 'n_intervals')],
     [State('avn-db-store', 'data')])
 def store_data(n, data):
-    pass
     try:
         _, conn = dateaubase.create_connection()
     except Exception:
         raise PreventUpdate
     print('Store update has started')
     end = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
-    three_days_ago = datetime.now(timezone.utc) - timedelta(days=DAYS_OF_DATA)
+    start_time = datetime.now(timezone.utc) - timedelta(minutes=MINUTES_OF_DATA)
     try:
         stored_df = pd.read_json(data)
     except Exception:
         stored_df = pd.DataFrame()
-    if len(stored_df.count()) == 0:
-        start = datetime.strftime(three_days_ago, '%Y-%m-%d %H:%M:%S')
+    if len(stored_df) == 0:
+        start = datetime.strftime(start_time, '%Y-%m-%d %H:%M:%S')
     else:
         print('what is the latest time?')
         print(pd.to_datetime(list(stored_df.index)[-1]))
         last_time = pd.to_datetime(list(stored_df.index)[-1])
         print(f'the type is {type(last_time)}')
 
-        if last_time < three_days_ago:
-            start = datetime.strftime(three_days_ago, '%Y-%m-%d %H:%M:%S')
+        if last_time < start_time:
+            start = datetime.strftime(start_time, '%Y-%m-%d %H:%M:%S')
         else:
-            start = datetime.strftime(last_time, '%Y-%m-%d %H:%M:%S')
+            start = datetime.strftime(start_time, '%Y-%m-%d %H:%M:%S')
     Project = 'pilEAUte'
     Location = [
         'Primary settling tank effluent',
@@ -103,7 +122,7 @@ def store_data(n, data):
         complete_df = new_df
     else:
         if length_new == 0:
-            print('No new data. Update prevented.')
+            print('No new data. Update aborted.')
             raise PreventUpdate
         else:
             print('Updating store with new data')
@@ -128,7 +147,7 @@ def avn_graph(data):
         fig = plottingtools.threefigs(df)
         print('AvN fig has been drawn')
         return fig
-
+''
 
 '''@app.callback(
     Output('avn-graph', 'figure'),
