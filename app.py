@@ -9,7 +9,7 @@ import pandas as pd
 import plotly.io as pio
 
 import Dateaubase
-import plottingtools
+import PlottingTools
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 pio.templates.default = "plotly_white"
@@ -144,7 +144,7 @@ def avn_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
-        fig = plottingtools.threefigs(df)
+        fig = PlottingTools.threefigs(df)
         print('AvN fig has been drawn')
         return fig
 ''
@@ -159,7 +159,7 @@ def avn_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
-        fig = plottingtools.avn_plot(df)
+        fig = PlottingTools.avn_plot(df)
         print('AvN fig has been drawn')
         return fig
 
@@ -174,7 +174,7 @@ def fraction_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
-        fig = plottingtools.airflow_plot(df)
+        fig = PlottingTools.airflow_plot(df)
         print('Airflow fig has been drawn')
         return fig
 
@@ -189,7 +189,7 @@ def airflow_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
-        fig = plottingtools.airflow_plot(df)
+        fig = PlottingTools.airflow_plot(df)
         print('Airflow fig has been drawn')
         return fig'''
 
