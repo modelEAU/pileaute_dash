@@ -14,10 +14,53 @@ import plottingtools
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 pio.templates.default = "plotly_white"
 
+DEBUG_START = "2018-01-01 00:00:00"
 NEW_DATA_INTERVAL = 30  # in seconds
 DAYS_OF_DATA = 1
 MINUTES_OF_DATA = 300
 STORE_MAX_LENGTH = DAYS_OF_DATA * 24 * 60 * 60  # worst-case of sensor that updates every second
+
+def build_param_table(_id):
+    table = dash_table.DataTable(
+        id=_id,
+        columns=[
+            {'name': 'Parameter', 'id': 'Parameter', 'editable': False},
+            {'name': 'Value', 'id': 'Value', 'editable': True},
+        ],
+        style_table={
+            'width': '100%',
+            'maxHeight': '300',
+            'overflowY': 'scroll'
+        },
+        style_data={'whiteSpace': 'normal'},
+        # content_style='grow',
+        css=[
+            {'selector': 'td.cell--selected *, td.focused *', 'rule': 'text-align: center;'},
+            {'selector': '.dash-cell div.dash-cell-value',
+                'rule': '''font-family: "Helvetica Neue";
+                    display: inline;
+                    white-space: inherit;
+                    overflow: inherit;
+                    text-overflow: inherit;
+                    font-size: 10px;'''},
+        ],
+        style_cell_conditional=[
+            {'if': {'column_id': 'Parameter'},
+                'minWidth': '50%', 'maxWidth': '50%', 'textAlign': 'left'},
+            {'if': {'column_id': 'Value'},
+                'minWidth': '50%', 'maxWidth': '50%', 'textAlign': 'center'},
+        ],
+        style_header={
+            'backgroundColor': 'white',
+            'fontWeight': 'bold',
+            'textAlign': 'center',
+            'fontFamily': 'Helvetica Neue',
+            'fontSize': '12px',
+        },
+        editable=True,
+        style_as_list_view=True,
+    )
+    return table
 
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -70,8 +113,10 @@ def store_data(n, data):
     except Exception:
         raise PreventUpdate
     print('Store update has started')
-    end = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
-    start_time = datetime.now(timezone.utc) - timedelta(minutes=MINUTES_OF_DATA)
+    # end = datetime.strftime(datetime.now(), '%Y-%m-%d %H:%M:%S')
+    # start_time = datetime.now(timezone.utc) - timedelta(minutes=MINUTES_OF_DATA)
+    start_time = datetime.strftime(DEBUG_START, '%Y-%m-%d %H:%M:%S') + timedelta(seconds=n * NEW_DATA_INTERVAL)
+    end = start_time + timedelta(minutes=MINUTES_OF_DATA) + timedelta(seconds=n * NEW_DATA_INTERVAL)
     try:
         stored_df = pd.read_json(data)
     except Exception:
