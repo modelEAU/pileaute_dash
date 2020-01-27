@@ -8,7 +8,7 @@ from dash.exceptions import PreventUpdate
 import pandas as pd
 import plotly.io as pio
 
-import dateaubase
+import Dateaubase
 import plottingtools
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
@@ -66,7 +66,7 @@ app.layout = html.Div(
     [State('avn-db-store', 'data')])
 def store_data(n, data):
     try:
-        _, conn = dateaubase.create_connection()
+        _, conn = Dateaubase.create_connection()
     except Exception:
         raise PreventUpdate
     print('Store update has started')
@@ -107,15 +107,15 @@ def store_data(n, data):
     extract_list = {}
     for i in range(len(param_list)):
         extract_list[i] = {
-            'Start': dateaubase.date_to_epoch(start),
-            'End': dateaubase.date_to_epoch(end),
+            'Start': Dateaubase.date_to_epoch(start),
+            'End': Dateaubase.date_to_epoch(end),
             'Project': Project,
             'Location': Location[i],
             'Parameter': param_list[i],
             'Equipment': equip_list[i]
         }
 
-    new_df = dateaubase.extract_data(conn, extract_list)
+    new_df = Dateaubase.extract_data(conn, extract_list)
     length_new = len(new_df)
     if len(stored_df.count()) == 0:
         print('No stored data')
