@@ -181,9 +181,10 @@ def store_data(n, data):
         else:
             print('Updating store with new data')
             print(f'trying to concat dataframes. New df has {len(new_df)} lines')
+            print(f'stored_df has {len(stored_df)} lines')
             complete_df = pd.concat([stored_df, new_df], sort=True)
             complete_df = complete_df.iloc[len(new_df):]
-    print(f'{len(complete_df)} are stored')
+            print(f'complete_df has {len(complete_df)} lines')
     print('Storing data')
     json_data = complete_df.to_json(date_format='iso')
     return json_data
