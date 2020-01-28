@@ -78,8 +78,8 @@ def extract_plotly(df):
 
 
 def avn_plot(df):
-    df = df.groupby(pd.Grouper(freq='600S')).first()
-#    df = df[df['pilEAUte-Pilote effluent-Varion_002-NH4_N'].notnull()]
+    df = df.groupby(pd.Grouper(freq='300S')).first()
+#   df = df[df['pilEAUte-Pilote effluent-Varion_002-NH4_N'].notnull()]
     fig = go.Figure()
     # NH4
     trace_nh4 = go.Scattergl(
@@ -151,7 +151,7 @@ def avn_plot(df):
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)'
     )
-
+    fig.show()
     return fig
 
 
@@ -183,15 +183,22 @@ def airflow_plot(df):
 
 
 def threefigs(df):
+    '''fig = go.Figure(
+        data=[go.Bar(x=[1, 2, 3], y=[1, 3, 2])],
+        layout=go.Layout(
+            title=go.layout.Title(text="A Bar Chart")
+        )
+    )'''
+    #df = df.groupby(pd.Grouper(freq='300S')).first()
     fig = make_subplots(
         rows=3, cols=1,
         specs=[[{'secondary_y': True}], [{}], [{}]],
         shared_xaxes=True,
-
     )
+
     # Top
     # NH4
-    trace_nh4 = go.Scattergl(
+    trace_nh4 = go.Scatter(
         x=df.index,
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000,
         name='Ammonia',
@@ -204,7 +211,7 @@ def threefigs(df):
     fig.add_trace(trace_nh4, row=1, col=1, secondary_y=False)
 
     # NO3
-    trace_no3 = go.Scattergl(
+    trace_no3 = go.Scatter(
         x=df.index,
         y=df['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000,
         name='Nitrate',
@@ -216,7 +223,7 @@ def threefigs(df):
     )
     fig.add_trace(trace_no3, row=1, col=1, secondary_y=False)
     # AvN
-    trace_avn = go.Scattergl(
+    trace_avn = go.Scatter(
         x=df.index,
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']
         / df['pilEAUte-Pilote effluent-Varion_002-NO3_N'],
@@ -234,7 +241,7 @@ def threefigs(df):
 
     # Middle
     df_mid = df.rolling('300s').mean()
-    flow_trace = go.Scattergl(
+    flow_trace = go.Scatter(
         x=df_mid.index,
         y=df_mid['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)'] * 1000 * 60,
         name='Aeration flow',
@@ -247,8 +254,4 @@ def threefigs(df):
     fig.add_trace(flow_trace, row=2, col=1)
     fig.add_trace(flow_trace, row=3, col=1)
 
-    # layout
-    layout = dict(
-        title=''
-    )
     return fig

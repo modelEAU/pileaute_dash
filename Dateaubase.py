@@ -188,6 +188,7 @@ def clean_up_pulled_data(df, project, location, equipment, parameter):
             'measurement': '{}-{}-{}-{}'.format(project, location, equipment, parameter),
         },
         inplace=True)
+    df.datetime = df.datetime.dt.tz_localize('EST')
     df.set_index('datetime', inplace=True, drop=True)
     df = df[~df.index.duplicated(keep='first')]
     return df
@@ -227,24 +228,26 @@ def extract_data(connexion, extract_list):
 
 
 '''cursor, conn = create_connection()
-Start = date_to_epoch('2017-09-01 12:00:00')
-End = date_to_epoch('2017-10-01 12:00:00')
+Start = date_to_epoch('2018-01-01 00:00:00')
+End = date_to_epoch('2018-01-02 00:00:00')
 Location = 'Primary settling tank effluent'
 Project = 'pilEAUte'
 
 param_list = ['COD','CODf','NH4-N','K']
 equip_list = ['Spectro_010','Spectro_010','Ammo_005','Ammo_005']
 
-extract_list={}
+extract_list = {}
 for i in range(len(param_list)):
     extract_list[i] = {
-        'Start':Start,
-        'End':End,
-        'Project':Project,
-        'Location':Location,
-        'Parameter':param_list[i],
-        'Equipment':equip_list[i]
+        'Start': Start,
+        'End': End,
+        'Project': Project,
+        'Location': Location,
+        'Parameter': param_list[i],
+        'Equipment': equip_list[i]
     }
 print('ready to extract')
 df = extract_data(conn, extract_list)
-print(len(df))'''
+resamp = df.resample('60S').mean()
+print(len(df))
+print(len(resamp))'''
