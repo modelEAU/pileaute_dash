@@ -9,8 +9,8 @@ from dash.exceptions import PreventUpdate
 import pandas as pd
 import plotly.io as pio
 
-import dateaubase
-import plottingtools
+import Dateaubase
+import PlottingTools
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 pio.templates.default = "plotly_white"
@@ -43,8 +43,8 @@ def AvN_shopping_list(beginning_string, ending_string):
     shopping_list = {}
     for i in range(len(param_list)):
         shopping_list[i] = {
-            'Start': dateaubase.date_to_epoch(beginning_string),
-            'End': dateaubase.date_to_epoch(ending_string),
+            'Start': Dateaubase.date_to_epoch(beginning_string),
+            'End': Dateaubase.date_to_epoch(ending_string),
             'Project': Project,
             'Location': Location[i],
             'Parameter': param_list[i],
@@ -141,7 +141,7 @@ app.layout = html.Div(
     [State('avn-db-store', 'data')])
 def store_data(n, data):
     try:
-        _, conn = dateaubase.create_connection()
+        _, conn = Dateaubase.create_connection()
     except Exception:
         raise PreventUpdate
     print('Store update has started')
@@ -169,7 +169,7 @@ def store_data(n, data):
     print(f'{len(stored_df)} points are in the store')
     print(f'Data from {start_string} to {end_string} will be extracted.')
     extract_list = AvN_shopping_list(start_string, end_string)
-    new_df = dateaubase.extract_data(conn, extract_list)
+    new_df = Dateaubase.extract_data(conn, extract_list)
 
     if len(stored_df) == 0:
         print('No stored data')
@@ -199,7 +199,7 @@ def avn_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
-        fig = plottingtools.threefigs(df)
+        fig = PlottingTools.threefigs(df)
         print('AvN fig has been created')
         return fig
 
@@ -214,7 +214,7 @@ def avn_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
-        fig = plottingtools.avn_plot(df)
+        fig = PlottingTools.avn_plot(df)
         print('AvN fig has been drawn')
         return fig
 
@@ -229,7 +229,7 @@ def fraction_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
-        fig = plottingtools.airflow_plot(df)
+        fig = PlottingTools.airflow_plot(df)
         print('Airflow fig has been drawn')
         return fig
 
@@ -244,7 +244,7 @@ def airflow_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
-        fig = plottingtools.airflow_plot(df)
+        fig = PlottingTools.airflow_plot(df)
         print('Airflow fig has been drawn')
         return fig'''
 
