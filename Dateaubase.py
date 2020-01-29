@@ -188,7 +188,8 @@ def clean_up_pulled_data(df, project, location, equipment, parameter):
             'measurement': '{}-{}-{}-{}'.format(project, location, equipment, parameter),
         },
         inplace=True)
-    df.datetime = df.datetime.dt.tz_localize('EST')
+    if len(df) != 0:
+        df.datetime = df.datetime.dt.tz_localize('EST')
     df.set_index('datetime', inplace=True, drop=True)
     df = df[~df.index.duplicated(keep='first')]
     return df
