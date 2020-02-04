@@ -253,5 +253,8 @@ def threefigs(df):
     )
     fig.add_trace(flow_trace, row=2, col=1)
     fig.add_trace(flow_trace, row=3, col=1)
+    fig.update_layout(height=500, width=1200)
+    fig.update_layout(legend_orientation="h")
+    #fig.show(config={'displayModeBar': False})
 
     return fig

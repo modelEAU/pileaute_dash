@@ -14,7 +14,7 @@ def create_connection():
     config = dict(
         server='10.10.10.10',  # change this to your SQL Server hostname or IP address
         port=1433,  # change this to your SQL Server port number [1433 is the default]
-        database='dateaubase',
+        database='dateaubase2020',
         username=username,
         password=password)
     conn_str = (

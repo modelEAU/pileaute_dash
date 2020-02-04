@@ -15,14 +15,17 @@ import PlottingTools
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 pio.templates.default = "plotly_white"
 
-DEBUG_START = "2017-08-01 00:00:00"
-NEW_DATA_INTERVAL = 30  # in seconds
-DAYS_OF_DATA = 1
+# USER DEFINED PARAMETERS
+NEW_DATA_INTERVAL = 10  # seconds
+DAYS_OF_DATA = 1/24 # days
+OFFSET = 0 # weeks
+
+# INITIALIZATION
 INTERVAL_LENGTH_SEC = DAYS_OF_DATA * 24 * 60 * 60
 STORE_MAX_LENGTH = INTERVAL_LENGTH_SEC  # worst-case of sensor that updates every second
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-
+# EXTRACT DESIRED DATA
 def AvN_shopping_list(beginning_string, ending_string):
     Project = 'pilEAUte'
     Location = [
@@ -52,7 +55,7 @@ def AvN_shopping_list(beginning_string, ending_string):
         }
     return shopping_list
 
-
+# TABLE OF KPI's
 def build_param_table(_id):
     table = dash_table.DataTable(
         id=_id,
@@ -129,7 +132,7 @@ app.layout = html.Div(
                     style={'display': 'inline-block', 'align-self': 'right', 'width': '20%'}
                 ),
             ],
-            style={'textAlign': 'center', 'padding-left': '10%', 'padding-right': '10%', 'width': '80%'}
+            style={'textAlign': 'center', 'padding-left': '0%', 'padding-right': '0%', 'width': '80%'}
         ),
     ],
 )
@@ -144,12 +147,12 @@ def store_data(n, data):
         _, conn = Dateaubase.create_connection()
     except Exception:
         raise PreventUpdate
-    print('Store update has started')
+    #print('Store update has started')
     end_time = pd.to_datetime(
-        datetime.now() - timedelta(weeks=38)
+        datetime.now() - timedelta(weeks=OFFSET)
     ).tz_localize('EST')
     start_time = pd.to_datetime(
-        datetime.now() - timedelta(weeks=38) - timedelta(seconds=INTERVAL_LENGTH_SEC)
+        datetime.now() - timedelta(weeks=OFFSET) - timedelta(seconds=INTERVAL_LENGTH_SEC)
     ).tz_localize('EST')
 
     end_string = datetime.strftime(end_time, TIME_FORMAT)
@@ -162,30 +165,32 @@ def store_data(n, data):
     if len(stored_df) != 0:
         last_time = pd.to_datetime(list(stored_df.index)[-1]).tz_convert('EST')
         last_string = last_time.strftime(TIME_FORMAT)
-        print(start_string)
-        print(last_string)
+        #print(start_string)
+        #print(f'{last_string} - last update')
         if last_time > start_time:
             start_string = last_string
-    print(f'{len(stored_df)} points are in the store')
-    print(f'Data from {start_string} to {end_string} will be extracted.')
+    #print(f'{len(stored_df)} points are in the store')
+    #print(f'Data from {start_string} to {end_string} will be extracted.')
     extract_list = AvN_shopping_list(start_string, end_string)
     new_df = Dateaubase.extract_data(conn, extract_list)
 
     if len(stored_df) == 0:
-        print('No stored data')
+        #print('No stored data')
         complete_df = new_df
     else:
         if len(new_df) == 0:
-            print('No new data. Update aborted.')
+            #print('No new data. Update aborted.')
             raise PreventUpdate
         else:
+            current_time = pd.to_datetime(datetime.now()).tz_localize('EST')
+            print(current_time)
             print('Updating store with new data')
-            print(f'trying to concat dataframes. New df has {len(new_df)} lines')
-            print(f'stored_df has {len(stored_df)} lines')
+            print(f'{len(new_df)} new lines')
+            #print(f'stored_df has {len(stored_df)} lines')
             complete_df = pd.concat([stored_df, new_df], sort=True)
             complete_df = complete_df.iloc[len(new_df):]
-            print(f'complete_df has {len(complete_df)} lines')
-    print('Storing data')
+            #print(f'complete_df has {len(complete_df)} lines')
+    #print('Storing data')
     json_data = complete_df.to_json(date_format='iso')
     return json_data
 
@@ -200,7 +205,7 @@ def avn_graph(data):
     else:
         df = pd.read_json(data)
         fig = PlottingTools.threefigs(df)
-        print('AvN fig has been created')
+        #print('AvN fig has been created')
         return fig
 
 
