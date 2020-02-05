@@ -30,9 +30,10 @@ def create_connection():
 
 
 def date_to_epoch(date):
-    naive_datetime = pd.to_datetime(date)
-    local_datetime = naive_datetime.tz_localize(tz='US/Eastern')
-    return int(local_datetime.value / 10**9)
+    datetime = pd.to_datetime(date)
+    if datetime.tz is None:
+        datetime = datetime.tz_localize(tz='US/Eastern')
+    return int(datetime.value / 10**9)
 
 
 def epoch_to_pandas_datetime(epoch):
@@ -228,7 +229,8 @@ def extract_data(connexion, extract_list):
     return df
 
 
-'''cursor, conn = create_connection()
+cursor, conn = create_connection()
+'''
 Start = date_to_epoch('2018-01-01 00:00:00')
 End = date_to_epoch('2018-01-02 00:00:00')
 Location = 'Primary settling tank effluent'
@@ -251,4 +253,9 @@ print('ready to extract')
 df = extract_data(conn, extract_list)
 resamp = df.resample('60S').mean()
 print(len(df))
-print(len(resamp))'''
+print(len(resamp))
+
+unit = get_units(conn, 'pilEAUte', 'Pilote influent', 'FIT-110', 'Flowrate (Liquid)')
+print(unit)
+'''
+
