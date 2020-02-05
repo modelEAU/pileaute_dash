@@ -189,7 +189,7 @@ def threefigs(df):
             title=go.layout.Title(text="A Bar Chart")
         )
     )'''
-    #df = df.groupby(pd.Grouper(freq='300S')).first()
+    # df = df.groupby(pd.Grouper(freq='300S')).first()
     fig = make_subplots(
         rows=3, cols=1,
         specs=[[{'secondary_y': True}], [{}], [{}]],
@@ -253,8 +253,8 @@ def threefigs(df):
     )
     fig.add_trace(flow_trace, row=2, col=1)
     fig.add_trace(flow_trace, row=3, col=1)
-    fig.update_layout(height=500, width=1200)
+    #fig.update_layout(height=500, width=1200)
     fig.update_layout(legend_orientation="h")
-    #fig.show(config={'displayModeBar': False})
+    # fig.show(config={'displayModeBar': False})
 
     return fig
