@@ -79,6 +79,7 @@ def extract_plotly(df):
 
 def avn_plot(df):
     df = df.groupby(pd.Grouper(freq='300S')).first()
+    df.index = df.index.tz_convert('US/Eastern')
 #   df = df[df['pilEAUte-Pilote effluent-Varion_002-NH4_N'].notnull()]
     fig = go.Figure()
     # NH4
@@ -183,6 +184,7 @@ def airflow_plot(df):
 
 
 def threefigs(df):
+    df.index = df.index.tz_convert('US/Eastern')
     '''fig = go.Figure(
         data=[go.Bar(x=[1, 2, 3], y=[1, 3, 2])],
         layout=go.Layout(
@@ -253,8 +255,9 @@ def threefigs(df):
     )
     fig.add_trace(flow_trace, row=2, col=1)
     fig.add_trace(flow_trace, row=3, col=1)
-    #fig.update_layout(height=500, width=1200)
+    # fig.update_layout(width=1200, height=800)
     fig.update_layout(legend_orientation="h")
+    fig.update_layout(legend=dict(x=0, y=1.2))
     # fig.show(config={'displayModeBar': False})
 
     return fig

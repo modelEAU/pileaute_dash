@@ -2,7 +2,6 @@
 # ## a VPN connection opened to the DatEAUbase Server
 import pandas as pd
 import pyodbc
-import time
 
 
 def create_connection():
@@ -37,8 +36,8 @@ def date_to_epoch(date):
 
 
 def epoch_to_pandas_datetime(epoch):
-    local_time = time.localtime(epoch)
-    return pd.Timestamp(*local_time[:6])
+    timestamp = pd.to_datetime(epoch * 10 ** 9).tz_localize('UTC').tz_convert('US/Eastern')
+    return timestamp
 
 
 def get_projects(connection):
@@ -189,8 +188,6 @@ def clean_up_pulled_data(df, project, location, equipment, parameter):
             'measurement': '{}-{}-{}-{}'.format(project, location, equipment, parameter),
         },
         inplace=True)
-    if len(df) != 0:
-        df.datetime = df.datetime.dt.tz_localize('EST')
     df.set_index('datetime', inplace=True, drop=True)
     df = df[~df.index.duplicated(keep='first')]
     return df
@@ -229,8 +226,9 @@ def extract_data(connexion, extract_list):
     return df
 
 
-cursor, conn = create_connection()
 '''
+cursor, conn = create_connection()
+
 Start = date_to_epoch('2018-01-01 00:00:00')
 End = date_to_epoch('2018-01-02 00:00:00')
 Location = 'Primary settling tank effluent'
@@ -254,8 +252,5 @@ df = extract_data(conn, extract_list)
 resamp = df.resample('60S').mean()
 print(len(df))
 print(len(resamp))
-
-unit = get_units(conn, 'pilEAUte', 'Pilote influent', 'FIT-110', 'Flowrate (Liquid)')
-print(unit)
-'''
-
+unit = get_units(conn, 'pilEAUte', 'Pilote reactor 5', 'FIT-430', 'Flowrate (Gas)')
+print(unit)'''

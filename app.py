@@ -11,6 +11,7 @@ import plotly.io as pio
 
 import Dateaubase
 import PlottingTools
+import kpi
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 pio.templates.default = "plotly_white"
@@ -37,11 +38,13 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Primary settling tank effluent',
         'Pilote effluent',
         'Pilote effluent',
+        'Pilote effluent',
         'Pilote reactor 5']
     equip_list = [
         'FIT-110',
         'FIT-120',
         'Ammo_005',
+        'Varion_002',
         'Varion_002',
         'Varion_002',
         'FIT-430']
@@ -51,6 +54,7 @@ def AvN_shopping_list(beginning_string, ending_string):
         'NH4-N',
         'NH4-N',
         'NO3-N',
+        'Temperature',
         'Flowrate (Gas)']
     shopping_list = {}
     for i in range(len(param_list)):
@@ -63,20 +67,6 @@ def AvN_shopping_list(beginning_string, ending_string):
             'Equipment': equip_list[i]
         }
     return shopping_list
-
-# TABLE OF KPI's
-
-
-def build_influent_df():
-    data = {
-        'Parameter': ['NH4_min', 'NH4_ave', 'NH4_max'],
-        'Value (mg/l)': ['12', '20', '32']
-    }
-    df = pd.DataFrame.from_dict(data)
-
-    return df
-
-
 
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
@@ -94,8 +84,8 @@ app.layout = html.Div(
             ],
             style={
                 'textAlign': 'center',
-                'paddingLeft': '10%',
-                'paddingRight': '10%',
+                'paddingLeft': '0%',
+                'paddingRight': '0%',
                 'width': '100%',
                 'borderStyle': 'solid',
             }
@@ -110,13 +100,11 @@ app.layout = html.Div(
                         dcc.Graph(id='avn-graph')
                     ],
                     style={
-                        'alignSelf': 'left',
-                        'alignItems': 'left',
-                        'alignContent': 'left',
-                        'width': '55%',
+                        'float': 'left',
+                        'width': '70%',
                         'borderStyle': 'solid',
-                        'display': 'flex',
-                        'paddingLeft': '0%',
+                        'display': 'inline-block',
+                        'paddingLeft': '2%',
                         'paddingRight': '0%',
                     }
                 ),
@@ -168,7 +156,7 @@ app.layout = html.Div(
                                 html.Div(
                                     children=dash_table.DataTable(
                                         id='bioreactor-table',
-                                        columns=[{"name": i, "id": i} for i in ['Parameter', 'Value (mg/l)']],
+                                        columns=[{"name": i, "id": i} for i in ['Qair, AE (m3/h)', 'Temperaure (°C)']],
                                     ),
                                     style={
                                         'display': 'inline-block',
@@ -182,12 +170,10 @@ app.layout = html.Div(
                         ),
                     ],
                     style={
-                        'alignSelf': 'right',
-                        'alignItems': 'right',
-                        'alignContent': 'right',
+                        'float': 'right',
                         'width': '25%',
                         'borderStyle': "solid",
-                        'display': 'flex',
+                        'display': 'inline-block',
                         'paddingLeft': '0%',
                         'paddingRight': '0%',
                     }
@@ -209,12 +195,22 @@ def store_data(n, data):
     except Exception:
         raise PreventUpdate
     # print('Store update has started')
-    end_time = pd.to_datetime(
-        datetime.now() - timedelta(weeks=OFFSET)
-    ).tz_localize('EST')
-    start_time = pd.to_datetime(
-        datetime.now() - timedelta(weeks=OFFSET) - timedelta(seconds=INTERVAL_LENGTH_SEC)
-    ).tz_localize('EST')
+    try:
+        end_time, start_time = (
+            pd.to_datetime(
+                datetime.now() - timedelta(weeks=OFFSET)
+            ).tz_localize('EST'),
+            pd.to_datetime(
+                datetime.now() - timedelta(weeks=OFFSET) - timedelta(seconds=INTERVAL_LENGTH_SEC)
+            ).tz_localize('EST'))
+    except TypeError:
+        end_time, start_time = (
+            pd.to_datetime(
+                datetime.now() - timedelta(weeks=OFFSET)
+            ).tz_convert('EST'),
+            pd.to_datetime(
+                datetime.now() - timedelta(weeks=OFFSET) - timedelta(seconds=INTERVAL_LENGTH_SEC)
+            ).tz_convert('EST'))
 
     end_string = datetime.strftime(end_time, TIME_FORMAT)
     start_string = datetime.strftime(start_time, TIME_FORMAT)
@@ -224,7 +220,11 @@ def store_data(n, data):
     except Exception:
         stored_df = pd.DataFrame()
     if len(stored_df) != 0:
-        last_time = pd.to_datetime(list(stored_df.index)[-1]).tz_convert('EST')
+        last_time = pd.to_datetime(list(stored_df.index)[-1])
+        if last_time.tz is None:
+            last_time = last_time.tz_localize('EST')
+        else:
+            last_time = last_time.tz_convert('EST')
         last_string = last_time.strftime(TIME_FORMAT)
         # print(start_string)
         # print(f'{last_string} - last update')
@@ -243,7 +243,11 @@ def store_data(n, data):
             # print('No new data. Update aborted.')
             raise PreventUpdate
         else:
-            current_time = pd.to_datetime(datetime.now()).tz_localize('EST')
+            current_time = pd.to_datetime(datetime.now())
+            if current_time.tz is None:
+                current_time = current_time.tz_localize('EST')
+            else:
+                current_time = current_time.tz_convert('EST')
             print(current_time)
             print('Updating store with new data')
             print(f'{len(new_df)} new lines')
@@ -279,13 +283,53 @@ def update_influent_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
-        NH4_col = 'pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N'
-        NH4_min = f'{data[NH4_col].min():.2f}'
-        NH4_max = f'{data[NH4_col].max():.2f}'
-        NH4_mean = f'{data[NH4_col].mean():.2f}'
+        NH4_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
+        NH4_min, NH4_max, NH4_avg, _ = kpi.stats(NH4_col)
         df = pd.DataFrame.from_dict({
-            'Parameter': ['NH4_min', 'NH4_ave', 'NH4_max'],
-            'Value (mg/l)': [NH4_min, NH4_mean, NH4_max]
+            'Parameter': ['NH4_min', 'NH4_avg', 'NH4_max'],
+            'Value (mg/l)': [f'{NH4_min:.2f}', f'{NH4_avg:.2f}', f'{NH4_max:.2f}']
+        })
+        return df.to_dict('records')
+
+
+@app.callback(
+    Output('effluent-table', 'data'),
+    [Input('refresh-interval', 'n_intervals')],
+    [State('avn-db-store', 'data')])
+def update_effluent_stats(refresh, data):
+    if not data:
+        raise PreventUpdate
+    else:
+        data = pd.read_json(data)
+        NH4_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000
+        NO3_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000
+        _, _, NH4_avg, _ = kpi.stats(NH4_col)
+        _, _, NO3_avg, _ = kpi.stats(NO3_col)
+        avn_ratio = NH4_avg / NO3_avg
+        df = pd.DataFrame.from_dict({
+            'Parameter': ['NH4_eff, avg', 'NO3_eff, avg', 'AvN ratio'],
+            'Value (mg/l)': [f'{NH4_avg:.2f}', f'{NO3_avg:.2f}', f'{avn_ratio:.2f}']
+        })
+        return df.to_dict('records')
+
+
+@app.callback(
+    Output('bioreactor-table', 'data'),
+    [Input('refresh-interval', 'n_intervals')],
+    [State('avn-db-store', 'data')])
+def update_biological_stats(refresh, data):
+    if not data:
+        raise PreventUpdate
+    else:
+        data = pd.read_json(data)
+        air_col = data['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)']
+        temp_col = data['pilEAUte-Pilote effluent-Varion_002-Temperature']
+        _, _, air_avg, _ = kpi.stats(air_col, rate=True)
+        air_avg *= 3600
+        _, _, temp_avg, _ = kpi.stats(temp_col)
+        df = pd.DataFrame.from_dict({
+            'Qair, AE (m3/h)': [f'{air_avg:.2f}'],
+            'Temperaure (°C)': [f'{temp_avg:.2f}']
         })
         return df.to_dict('records')
 
