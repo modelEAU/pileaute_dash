@@ -184,13 +184,8 @@ def airflow_plot(df):
 
 
 def threefigs(df):
-    df.index = df.index.tz_convert('US/Eastern')
-    '''fig = go.Figure(
-        data=[go.Bar(x=[1, 2, 3], y=[1, 3, 2])],
-        layout=go.Layout(
-            title=go.layout.Title(text="A Bar Chart")
-        )
-    )'''
+    df.index = pd.to_datetime(df.index).tz_convert('US/Eastern')
+    
     # df = df.groupby(pd.Grouper(freq='300S')).first()
     fig = make_subplots(
         rows=3, cols=1,
@@ -205,6 +200,7 @@ def threefigs(df):
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000,
         name='Ammonia',
         mode='lines',
+        connectgaps=True,
         line=dict(
             dash='solid',
             color='blue'
@@ -217,6 +213,7 @@ def threefigs(df):
         x=df.index,
         y=df['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000,
         name='Nitrate',
+        connectgaps=True,
         mode='lines',
         line=dict(
             dash='solid',
@@ -230,6 +227,7 @@ def threefigs(df):
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']
         / df['pilEAUte-Pilote effluent-Varion_002-NO3_N'],
         name='AvN ratio',
+        connectgaps=True,
         mode='lines+markers',
         line=dict(
             dash='solid',
@@ -246,6 +244,7 @@ def threefigs(df):
     flow_trace = go.Scatter(
         x=df_mid.index,
         y=df_mid['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)'] * 1000 * 60,
+        connectgaps=True,
         name='Aeration flow',
         mode='lines',
         line=dict(

@@ -226,11 +226,11 @@ def extract_data(connexion, extract_list):
     return df
 
 
-'''
-cursor, conn = create_connection()
 
-Start = date_to_epoch('2018-01-01 00:00:00')
-End = date_to_epoch('2018-01-02 00:00:00')
+'''cursor, conn = create_connection()
+
+Start = date_to_epoch('2020-01-01 00:00:00')
+End = date_to_epoch('2020-01-02 00:00:00')
 Location = 'Primary settling tank effluent'
 Project = 'pilEAUte'
 
@@ -253,4 +253,5 @@ resamp = df.resample('60S').mean()
 print(len(df))
 print(len(resamp))
 unit = get_units(conn, 'pilEAUte', 'Pilote reactor 5', 'FIT-430', 'Flowrate (Gas)')
-print(unit)'''
+print(unit)
+'''

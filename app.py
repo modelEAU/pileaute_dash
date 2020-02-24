@@ -19,7 +19,7 @@ pio.templates.default = "plotly_white"
 pd.options.display.float_format = '{:,.2f}'.format
 # USER DEFINED PARAMETERS
 NEW_DATA_INTERVAL = 10  # seconds
-DAYS_OF_DATA = 1 / 24  # days
+DAYS_OF_DATA = 1  # days
 OFFSET = 0  # weeks
 
 # INITIALIZATION
@@ -284,6 +284,7 @@ def update_influent_stats(refresh, data):
     else:
         data = pd.read_json(data)
         NH4_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
+        # print(NH4_col.tail())
         NH4_min, NH4_max, NH4_avg, _ = kpi.stats(NH4_col)
         df = pd.DataFrame.from_dict({
             'Parameter': ['NH4_min', 'NH4_avg', 'NH4_max'],
