@@ -36,6 +36,8 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Pilote influent',
         'Copilote influent',
         'Primary settling tank effluent',
+        'Primary settling tank effluent',
+        'Primary settling tank effluent',
         'Pilote effluent',
         'Pilote effluent',
         'Pilote effluent',
@@ -44,6 +46,8 @@ def AvN_shopping_list(beginning_string, ending_string):
         'FIT-110',
         'FIT-120',
         'Ammo_005',
+        'Spectro_010',
+        'Spectro_010',
         'Varion_002',
         'Varion_002',
         'Varion_002',
@@ -52,6 +56,8 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Flowrate (Liquid)',
         'Flowrate (Liquid)',
         'NH4-N',
+        'COD',
+        'NO3-N',
         'NH4-N',
         'NO3-N',
         'Temperature',
@@ -111,7 +117,7 @@ app.layout = html.Div(
                 html.Div(
                     id='table-div',
                     children=[
-                        html.H2(dcc.Markdown("Stats"), style={'textAlign': 'center'}),
+                        html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center'}),
                         html.Div(
                             id='floor-1',
                             children=[
@@ -120,29 +126,30 @@ app.layout = html.Div(
                                         html.H4('Influent'),
                                         dash_table.DataTable(
                                             id='influent-table',
-                                            columns=[{"name": i, "id": i} for i in ['Parameter', 'Value (mg/l)']],
+                                            columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
                                         ),
                                     ],
                                     style={
                                         'display': 'inline-block',
                                         'alignSelf': 'left',
-                                        'width': '40%',
+                                        'width': '96%',
                                         'paddingLeft': '2%',
                                         'paddingRight': '2%'
                                     },
                                 ),
+                                html.Br(),
                                 html.Div(
                                     children=[
                                         html.H4('Effluent'),
                                         dash_table.DataTable(
                                             id='effluent-table',
-                                            columns=[{"name": i, "id": i} for i in ['Parameter', 'Value (mg/l)']],
+                                            columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
                                         ),
                                     ],
                                     style={
                                         'display': 'inline-block',
-                                        'alignSelf': 'right',
-                                        'width': '40%',
+                                        'alignSelf': 'left',
+                                        'width': '96%',
                                         'paddingLeft': '2%',
                                         'paddingRight': '2%',
                                     },
@@ -154,14 +161,17 @@ app.layout = html.Div(
                             id='floor-2',
                             children=[
                                 html.Div(
-                                    children=dash_table.DataTable(
-                                        id='bioreactor-table',
-                                        columns=[{"name": i, "id": i} for i in ['Qair, AE (m3/h)', 'Temperaure (°C)']],
-                                    ),
+                                    children=[
+                                        html.H4('Cumulative Stats'),
+                                        dash_table.DataTable(
+                                            id='bioreactor-table',
+                                            columns=[{"name": i, "id": i} for i in ['Parameter', 'Last 24 hrs']],
+                                        )
+                                    ],
                                     style={
                                         'display': 'inline-block',
-                                        'alignSelf': 'left',
-                                        'width': '40%',
+                                        'alignSelf': 'right',
+                                        'width': '96%',
                                         'paddingLeft': '2%',
                                         'paddingRight': '2%'
                                     },
@@ -263,10 +273,7 @@ def avn_graph(data):
         df = pd.read_json(data)
         Qair_col = df["pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)"]
         _, peak_average = calculateKPIs.peak_stats(Qair_col, 400 / (60 * 1000))
-        print(f'df index is {df.index.tz}')
-        print(f'peak avg index is {peak_average.index.tz}')
         df = pd.concat([df, peak_average], axis=1, sort=False)
-        print(df.columns)
         fig = PlottingTools.threefigs(df)
         # print('AvN fig has been created')
         return fig
@@ -282,11 +289,18 @@ def update_influent_stats(refresh, data):
     else:
         data = pd.read_json(data)
         NH4_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
+        COD_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-COD'] * 1000
         # print(NH4_col.tail())
-        NH4_min, NH4_max, NH4_avg, _ = calculateKPIs.stats(NH4_col)
+        NH4_now, NH4_24 = calculateKPIs.stats_24(NH4_col)
+
+        COD_now, COD_24 = calculateKPIs.stats_24(COD_col)
+
+        ratio_now = COD_now / NH4_now
+        ratio_24 = COD_24 / NH4_24
         df = pd.DataFrame.from_dict({
-            'Parameter': ['NH4_min', 'NH4_avg', 'NH4_max'],
-            'Value (mg/l)': [f'{NH4_min:.2f}', f'{NH4_avg:.2f}', f'{NH4_max:.2f}']
+            'Parameter': ['COD', 'NH4', 'COD/NH4'],
+            'Now': [f'{COD_now:.2f}', f'{NH4_now:.2f}', f'{ratio_now:.2f}'],
+            'Last 24 hrs': [f'{COD_24:.2f}', f'{NH4_24:.2f}', f'{ratio_24:.2f}'],
         })
         return df.to_dict('records')
 
@@ -300,14 +314,37 @@ def update_effluent_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
+        # effluent stats
         NH4_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000
         NO3_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000
-        _, _, NH4_avg, _ = calculateKPIs.stats(NH4_col)
-        _, _, NO3_avg, _ = calculateKPIs.stats(NO3_col)
-        avn_ratio = NH4_avg / NO3_avg
+        NH4in_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
+        NO3in_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-NO3_N']
+        NH4_now, NH4_24 = calculateKPIs.stats_24(NH4_col)
+
+        NO3_now, NO3_24 = calculateKPIs.stats_24(NO3_col)
+
+        NO2_now, NO2_24 = 0, 0
+
+        AvN_now = NH4_now / NO3_now
+        AvN_24 = NH4_24 / NO3_24
+
+        TIN_now = float(NH4_now) + float(NO3_now) + float(NO2_now)
+        TIN_24 = float(NH4_24) + float(NO3_24) + float(NO2_24)
+
+        # influent values
+        NH4in_now, NH4in_24 = calculateKPIs.stats_24(NH4in_col)
+        NO3in_now, NO3in_24 = calculateKPIs.stats_24(NO3in_col)
+
+        # TIN removal
+        TINin_now = NH4in_now + NO3in_now
+        TINin_24 = NH4in_24 + NO3in_24
+        TINrem_now = float(TINin_now) - float(TIN_now)
+        TINrem_24 = float(TINin_24) - float(TIN_24)
+
         df = pd.DataFrame.from_dict({
-            'Parameter': ['NH4_eff, avg', 'NO3_eff, avg', 'AvN ratio'],
-            'Value (mg/l)': [f'{NH4_avg:.2f}', f'{NO3_avg:.2f}', f'{avn_ratio:.2f}']
+            'Parameter': ['NH4', 'NO2', 'NO3', 'AvN', 'TIN removal'],
+            'Now': [f'{NH4_now:.2f}', f'{NO2_now:.2f}', f'{NO3_now:.2f}', f'{AvN_now:.2f}', f'{TINrem_now:.2f}'],
+            'Last 24 hrs': [f'{NH4_24:.2f}', f'{NO2_24:.2f}', f'{NO3_24:.2f}', f'{AvN_24:.2f}', f'{TINrem_24:.2f}'],
         })
         return df.to_dict('records')
 
@@ -321,14 +358,44 @@ def update_biological_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
-        air_col = data['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)']
-        temp_col = data['pilEAUte-Pilote effluent-Varion_002-Temperature']
-        _, _, air_avg, _ = calculateKPIs.stats(air_col, rate=True)
-        air_avg *= 3600
-        _, _, temp_avg, _ = calculateKPIs.stats(temp_col)
+        air_col = data['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)']  # m3/s
+        pilwater_col = data['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)']  # m3/s
+        NH4eff_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] / 1000  # mg/l to kg/m3
+        NO3eff_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N']  # kg/m3
+
+        NH4in_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N'] / 1000  # mg/l to kg/m3
+        NO3in_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-NO3_N']  # kg/m3
+
+        totNH4in = calculateKPIs.integrate_flow(NH4in_col)
+        totNO3in = calculateKPIs.integrate_flow(NO3in_col)
+        totNO2eff = 0
+        totNH4eff = calculateKPIs.integrate_flow(NH4eff_col)
+        totNO3eff = calculateKPIs.integrate_flow(NO3eff_col)
+        tot_tin = (totNH4in + totNO3in) - (totNH4eff + totNO3eff + totNO2eff)
+        tot_air = calculateKPIs.integrate_flow(air_col)
+        tot_water = calculateKPIs.integrate_flow(pilwater_col)
+        # print(f'Total air,(m3) {tot_air}')
+        # print(f'Total water, (m3), {tot_water}')
+        # print(f'Total TIN removed, kg, {tot_tin / 1000}')
+
+        tin_air = tot_tin / tot_air
+        water_air = tot_water / tot_air
+
         df = pd.DataFrame.from_dict({
-            'Qair, AE (m3/h)': [f'{air_avg:.2f}'],
-            'Temperaure (°C)': [f'{temp_avg:.2f}']
+            'Parameter': [
+                'TIN removed/m3 air (g N/m3)',
+                'Treated water / m3 air (m3/m3d)',
+                'Volume of water treated (m3)',
+                'Volume of air (m3)',
+                'Nitrogen removed (g)'
+            ],
+            'Last 24 hrs': [
+                f'{tin_air:.3f}',
+                f'{water_air:.3f}',
+                f'{tot_water:.1f}',
+                f'{tot_air:.1f}',
+                f'{tot_tin:.1f}'
+            ],
         })
         return df.to_dict('records')
 

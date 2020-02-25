@@ -224,16 +224,15 @@ def extract_data(connexion, extract_list):
     return df
 
 
+cursor, conn = create_connection()
 
-'''cursor, conn = create_connection()
-
-Start = date_to_epoch('2020-01-01 00:00:00')
-End = date_to_epoch('2020-01-02 00:00:00')
-Location = 'Primary settling tank effluent'
+Start = date_to_epoch('2020-02-24 17:00:00')
+End = date_to_epoch('2020-02-26 17:00:00')
+Location = 'Pilote reactor 4'
 Project = 'pilEAUte'
 
-param_list = ['COD','CODf','NH4-N','K']
-equip_list = ['Spectro_010','Spectro_010','Ammo_005','Ammo_005']
+param_list = ['Flowrate (Gas)']
+equip_list = ['FIT-420']
 
 extract_list = {}
 for i in range(len(param_list)):
@@ -247,9 +246,7 @@ for i in range(len(param_list)):
     }
 print('ready to extract')
 df = extract_data(conn, extract_list)
-resamp = df.resample('60S').mean()
-print(len(df))
-print(len(resamp))
-unit = get_units(conn, 'pilEAUte', 'Pilote reactor 5', 'FIT-430', 'Flowrate (Gas)')
+
+
+unit = get_units(conn, 'pilEAUte', 'Pilote reactor 4', 'FIT-420', 'Flowrate (Gas)y')
 print(unit)
-'''

@@ -2,7 +2,6 @@ from itertools import cycle
 
 import plotly.graph_objects as go
 import pandas as pd
-import numpy as np
 from plotly.subplots import make_subplots
 
 COLORWAY = ['#f3cec9', '#e7a4b6', '#cd7eaf', '#a262a9', '#6f4d96', '#3d3b72', '#182844']
