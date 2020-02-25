@@ -271,6 +271,8 @@ def threefigs(df):
     fig.update_layout(height=800)
     fig.update_yaxes(range=[0, 20], row=1, col=1, secondary_y=False)
     fig.update_yaxes(range=[0, 2], row=1, col=1, secondary_y=True)
+    fig.update_yaxes(range=[0, 1000], row=2, col=1)
+    fig.update_yaxes(range=[800, 900], row=3, col=1)
     fig.update_layout(legend_orientation="h")
     fig.update_layout(legend=dict(x=0, y=1.2))
     # fig.show(config={'displayModeBar': False})
