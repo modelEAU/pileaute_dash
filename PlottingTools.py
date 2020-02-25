@@ -2,6 +2,7 @@ from itertools import cycle
 
 import plotly.graph_objects as go
 import pandas as pd
+import numpy as np
 from plotly.subplots import make_subplots
 
 COLORWAY = ['#f3cec9', '#e7a4b6', '#cd7eaf', '#a262a9', '#6f4d96', '#3d3b72', '#182844']
@@ -184,8 +185,8 @@ def airflow_plot(df):
 
 
 def threefigs(df):
-    df.index = pd.to_datetime(df.index).tz_convert('US/Eastern')
-    
+    time = df.index
+
     # df = df.groupby(pd.Grouper(freq='300S')).first()
     fig = make_subplots(
         rows=3, cols=1,
@@ -196,7 +197,7 @@ def threefigs(df):
     # Top
     # NH4
     trace_nh4 = go.Scatter(
-        x=df.index,
+        x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000,
         name='Ammonia',
         mode='lines',
@@ -210,7 +211,7 @@ def threefigs(df):
 
     # NO3
     trace_no3 = go.Scatter(
-        x=df.index,
+        x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000,
         name='Nitrate',
         connectgaps=True,
@@ -223,7 +224,7 @@ def threefigs(df):
     fig.add_trace(trace_no3, row=1, col=1, secondary_y=False)
     # AvN
     trace_avn = go.Scatter(
-        x=df.index,
+        x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']
         / df['pilEAUte-Pilote effluent-Varion_002-NO3_N'],
         name='AvN ratio',
@@ -241,9 +242,10 @@ def threefigs(df):
 
     # Middle
     df_mid = df.rolling('300s').mean()
+
     flow_trace = go.Scatter(
         x=df_mid.index,
-        y=df_mid['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)'] * 1000 * 60,
+        y=df_mid['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)'] * 1000 * 60,
         connectgaps=True,
         name='Aeration flow',
         mode='lines',
@@ -252,9 +254,23 @@ def threefigs(df):
             color='red'
         ),
     )
+    # Average cycle
+    avg_cycle_trace = go.Scatter(
+        x=time,
+        y=df['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)-avg cycle'] * 1000 * 60,
+        connectgaps=True,
+        name='Average cycle',
+        mode='lines',
+        line=dict(
+            dash='solid',
+            color='green'
+        ),
+    )
     fig.add_trace(flow_trace, row=2, col=1)
-    fig.add_trace(flow_trace, row=3, col=1)
-    # fig.update_layout(width=1200, height=800)
+    fig.add_trace(avg_cycle_trace, row=3, col=1)
+    fig.update_layout(height=800)
+    fig.update_yaxes(range=[0, 20], row=1, col=1, secondary_y=False)
+    fig.update_yaxes(range=[0, 2], row=1, col=1, secondary_y=True)
     fig.update_layout(legend_orientation="h")
     fig.update_layout(legend=dict(x=0, y=1.2))
     # fig.show(config={'displayModeBar': False})

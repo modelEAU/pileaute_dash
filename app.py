@@ -11,7 +11,7 @@ import plotly.io as pio
 
 import Dateaubase
 import PlottingTools
-import kpi
+import calculateKPIs
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 pio.templates.default = "plotly_white"
@@ -39,7 +39,7 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Pilote effluent',
         'Pilote effluent',
         'Pilote effluent',
-        'Pilote reactor 5']
+        'Pilote reactor 4']
     equip_list = [
         'FIT-110',
         'FIT-120',
@@ -47,7 +47,7 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Varion_002',
         'Varion_002',
         'Varion_002',
-        'FIT-430']
+        'FIT-420']
     param_list = [
         'Flowrate (Liquid)',
         'Flowrate (Liquid)',
@@ -78,7 +78,7 @@ app.layout = html.Div(
         html.Div(
             children=[
                 html.Img(
-                    src='assets/flowsheetPilEAUte_with_logo.png',
+                    src='assets/flowsheetPilEAUte_avn.png',
                     style={'align': 'middle'}
                 ),
             ],
@@ -198,19 +198,19 @@ def store_data(n, data):
     try:
         end_time, start_time = (
             pd.to_datetime(
-                datetime.now() - timedelta(weeks=OFFSET)
-            ).tz_localize('EST'),
+                datetime.utcnow() - timedelta(weeks=OFFSET)
+            ).tz_localize("UTC"),
             pd.to_datetime(
-                datetime.now() - timedelta(weeks=OFFSET) - timedelta(seconds=INTERVAL_LENGTH_SEC)
-            ).tz_localize('EST'))
+                datetime.utcnow() - timedelta(weeks=OFFSET) - timedelta(seconds=INTERVAL_LENGTH_SEC)
+            ).tz_localize("UTC"))
     except TypeError:
         end_time, start_time = (
             pd.to_datetime(
-                datetime.now() - timedelta(weeks=OFFSET)
-            ).tz_convert('EST'),
+                datetime.utcnow() - timedelta(weeks=OFFSET)
+            ).tz_localize("UTC"),
             pd.to_datetime(
-                datetime.now() - timedelta(weeks=OFFSET) - timedelta(seconds=INTERVAL_LENGTH_SEC)
-            ).tz_convert('EST'))
+                datetime.utcnow() - timedelta(weeks=OFFSET) - timedelta(seconds=INTERVAL_LENGTH_SEC)
+            ).tz_localize("UTC"))
 
     end_string = datetime.strftime(end_time, TIME_FORMAT)
     start_string = datetime.strftime(start_time, TIME_FORMAT)
@@ -221,10 +221,6 @@ def store_data(n, data):
         stored_df = pd.DataFrame()
     if len(stored_df) != 0:
         last_time = pd.to_datetime(list(stored_df.index)[-1])
-        if last_time.tz is None:
-            last_time = last_time.tz_localize('EST')
-        else:
-            last_time = last_time.tz_convert('EST')
         last_string = last_time.strftime(TIME_FORMAT)
         # print(start_string)
         # print(f'{last_string} - last update')
@@ -244,10 +240,6 @@ def store_data(n, data):
             raise PreventUpdate
         else:
             current_time = pd.to_datetime(datetime.now())
-            if current_time.tz is None:
-                current_time = current_time.tz_localize('EST')
-            else:
-                current_time = current_time.tz_convert('EST')
             print(current_time)
             print('Updating store with new data')
             print(f'{len(new_df)} new lines')
@@ -269,6 +261,12 @@ def avn_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
+        Qair_col = df["pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)"]
+        _, peak_average = calculateKPIs.peak_stats(Qair_col, 400 / (60 * 1000))
+        print(f'df index is {df.index.tz}')
+        print(f'peak avg index is {peak_average.index.tz}')
+        df = pd.concat([df, peak_average], axis=1, sort=False)
+        print(df.columns)
         fig = PlottingTools.threefigs(df)
         # print('AvN fig has been created')
         return fig
@@ -285,7 +283,7 @@ def update_influent_stats(refresh, data):
         data = pd.read_json(data)
         NH4_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
         # print(NH4_col.tail())
-        NH4_min, NH4_max, NH4_avg, _ = kpi.stats(NH4_col)
+        NH4_min, NH4_max, NH4_avg, _ = calculateKPIs.stats(NH4_col)
         df = pd.DataFrame.from_dict({
             'Parameter': ['NH4_min', 'NH4_avg', 'NH4_max'],
             'Value (mg/l)': [f'{NH4_min:.2f}', f'{NH4_avg:.2f}', f'{NH4_max:.2f}']
@@ -304,8 +302,8 @@ def update_effluent_stats(refresh, data):
         data = pd.read_json(data)
         NH4_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000
         NO3_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000
-        _, _, NH4_avg, _ = kpi.stats(NH4_col)
-        _, _, NO3_avg, _ = kpi.stats(NO3_col)
+        _, _, NH4_avg, _ = calculateKPIs.stats(NH4_col)
+        _, _, NO3_avg, _ = calculateKPIs.stats(NO3_col)
         avn_ratio = NH4_avg / NO3_avg
         df = pd.DataFrame.from_dict({
             'Parameter': ['NH4_eff, avg', 'NO3_eff, avg', 'AvN ratio'],
@@ -323,11 +321,11 @@ def update_biological_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
-        air_col = data['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)']
+        air_col = data['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)']
         temp_col = data['pilEAUte-Pilote effluent-Varion_002-Temperature']
-        _, _, air_avg, _ = kpi.stats(air_col, rate=True)
+        _, _, air_avg, _ = calculateKPIs.stats(air_col, rate=True)
         air_avg *= 3600
-        _, _, temp_avg, _ = kpi.stats(temp_col)
+        _, _, temp_avg, _ = calculateKPIs.stats(temp_col)
         df = pd.DataFrame.from_dict({
             'Qair, AE (m3/h)': [f'{air_avg:.2f}'],
             'Temperaure (°C)': [f'{temp_avg:.2f}']

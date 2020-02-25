@@ -30,13 +30,11 @@ def create_connection():
 
 def date_to_epoch(date):
     datetime = pd.to_datetime(date)
-    if datetime.tz is None:
-        datetime = datetime.tz_localize(tz='US/Eastern')
     return int(datetime.value / 10**9)
 
 
 def epoch_to_pandas_datetime(epoch):
-    timestamp = pd.to_datetime(epoch * 10 ** 9).tz_localize('UTC').tz_convert('US/Eastern')
+    timestamp = pd.to_datetime(epoch * 10 ** 9)
     return timestamp
 
 
