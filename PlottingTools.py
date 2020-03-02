@@ -224,9 +224,8 @@ def threefigs(df):
     # AvN
     trace_avn = go.Scatter(
         x=time,
-        y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']
-        / df['pilEAUte-Pilote effluent-Varion_002-NO3_N'],
-        name='AvN ratio',
+        y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']* 1000 - df['pilEAUte-Pilote effluent-Varion_002-NO3_N']* 1000 +1,
+        name='AvN difference',
         connectgaps=True,
         mode='lines+markers',
         line=dict(
@@ -288,9 +287,9 @@ def threefigs(df):
 
     # Sbplot specific layouts
     fig.update_yaxes(title_text="[mg/L]", title_font=dict(size=14),range=[0, 20], row=1, col=1, secondary_y=False)
-    fig.update_yaxes(title_text="[-]", title_font=dict(size=14),range=[0, 2], row=1, col=1, secondary_y=True)
-    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[0, 1000], row=2, col=1)
-    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[800, 900], row=3, col=1)
+    fig.update_yaxes(title_text="[-]", title_font=dict(size=14),range=[-10, 10], row=1, col=1, secondary_y=True)
+    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[-50, 1000], row=2, col=1)
+    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[500, 900], row=3, col=1)
 
     # General figure layout
     showgrid=True
