@@ -91,7 +91,7 @@ app.layout = html.Div(
                 'paddingLeft': '0%',
                 'paddingRight': '0%',
                 'width': '100%',
-                'borderStyle': 'solid',
+                #'borderStyle': 'solid',
             }
         ),
         html.Br(),
@@ -100,13 +100,13 @@ app.layout = html.Div(
                 html.Div(
                     id='graph-div',
                     children=[
-                        html.H2(dcc.Markdown("Online data"), style={'textAlign': 'center'}),
+                        #html.H2(dcc.Markdown("Online data"), style={'textAlign': 'center'}),
                         dcc.Graph(id='avn-graph')
                     ],
                     style={
                         'float': 'left',
                         'width': '70%',
-                        'borderStyle': 'solid',
+                        #'borderStyle': 'solid',
                         'display': 'inline-block',
                         'paddingLeft': '2%',
                         'paddingRight': '0%',
@@ -115,13 +115,15 @@ app.layout = html.Div(
                 html.Div(
                     id='table-div',
                     children=[
-                        html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center'}),
+                        #html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center'}),
                         html.Div(
                             id='floor-1',
                             children=[
                                 html.Div(
                                     children=[
-                                        html.H4('Influent'),
+                                        html.H4('Influent', 
+                                            style={'text-align': 'left'}
+                                        ),
                                         dash_table.DataTable(
                                             id='influent-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
@@ -155,7 +157,9 @@ app.layout = html.Div(
                                 html.Br(),
                                 html.Div(
                                     children=[
-                                        html.H4('Effluent'),
+                                        html.H4('Effluent', 
+                                            style={'text-align': 'left'}
+                                        ),
                                         dash_table.DataTable(
                                             id='effluent-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
@@ -194,7 +198,9 @@ app.layout = html.Div(
                             children=[
                                 html.Div(
                                     children=[
-                                        html.H4('Cumulative Stats'),
+                                        html.H4('Cumulative Stats', 
+                                            style={'text-align': 'left'}
+                                        ),
                                         dash_table.DataTable(
                                             id='bioreactor-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Last 24 hrs']],
@@ -231,7 +237,7 @@ app.layout = html.Div(
                     style={
                         'float': 'right',
                         'width': '25%',
-                        'borderStyle': "solid",
+                        #'borderStyle': "solid",
                         'display': 'inline-block',
                         'paddingLeft': '0%',
                         'paddingRight': '0%',
