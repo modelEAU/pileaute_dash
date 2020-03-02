@@ -13,7 +13,6 @@ import Dateaubase
 import PlottingTools
 import calculateKPIs
 
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 pio.templates.default = "plotly_white"
 
 pd.options.display.float_format = '{:,.2f}'.format
@@ -40,7 +39,7 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Pilote effluent',
         'Pilote effluent',
         'Pilote effluent',
-        'Pilote reactor 4']
+        'Pilote reactor 5']
     equip_list = [
         'FIT-110',
         'FIT-120',
@@ -50,7 +49,7 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Varion_002',
         'Varion_002',
         'Varion_002',
-        'FIT-420']
+        'FIT-430']
     param_list = [
         'Flowrate (Liquid)',
         'Flowrate (Liquid)',
@@ -74,7 +73,7 @@ def AvN_shopping_list(beginning_string, ending_string):
     return shopping_list
 
 
-app = dash.Dash(__name__) #,external_stylesheets=external_stylesheets
+app = dash.Dash(__name__)
 
 app.layout = html.Div(
     children=[
@@ -126,6 +125,23 @@ app.layout = html.Div(
                                         dash_table.DataTable(
                                             id='influent-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
+                                            style_as_list_view=True,
+                                            style_header={
+                                                'fontWeight': 'bold',
+                                                'backgroundColor': 'rgb(230, 230, 230)',
+                                            },
+                                            style_cell_conditional=[
+                                                {
+                                                    'if': {'column_id': c},
+                                                    'textAlign': 'left'
+                                                } for c in ['Parameter']
+                                            ],
+                                            style_data_conditional=[
+                                                {
+                                                    'if': {'row_index': 'odd'},
+                                                    'backgroundColor': 'rgb(248, 248, 248)'
+                                                }
+                                            ],
                                         ),
                                     ],
                                     style={
@@ -143,6 +159,23 @@ app.layout = html.Div(
                                         dash_table.DataTable(
                                             id='effluent-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
+                                            style_as_list_view=True,
+                                            style_header={
+                                                'fontWeight': 'bold',
+                                                'backgroundColor': 'rgb(230, 230, 230)',
+                                            },
+                                            style_cell_conditional=[
+                                                {
+                                                    'if': {'column_id': c},
+                                                    'textAlign': 'left'
+                                                } for c in ['Parameter']
+                                            ],
+                                            style_data_conditional=[
+                                                {
+                                                    'if': {'row_index': 'odd'},
+                                                    'backgroundColor': 'rgb(248, 248, 248)'
+                                                }
+                                            ],
                                         ),
                                     ],
                                     style={
@@ -165,6 +198,23 @@ app.layout = html.Div(
                                         dash_table.DataTable(
                                             id='bioreactor-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Last 24 hrs']],
+                                            style_as_list_view=True,
+                                            style_header={
+                                                'fontWeight': 'bold',
+                                                'backgroundColor': 'rgb(230, 230, 230)',
+                                            },
+                                            style_cell_conditional=[
+                                                {
+                                                    'if': {'column_id': c},
+                                                    'textAlign': 'left'
+                                                } for c in ['Parameter']
+                                            ],
+                                            style_data_conditional=[
+                                                {
+                                                    'if': {'row_index': 'odd'},
+                                                    'backgroundColor': 'rgb(248, 248, 248)'
+                                                }
+                                            ],
                                         )
                                     ],
                                     style={
@@ -270,7 +320,7 @@ def avn_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
-        Qair_col = df["pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)"]
+        Qair_col = df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)"]
         _, peak_average = calculateKPIs.peak_stats(Qair_col, 400 / (60 * 1000))
         df = pd.concat([df, peak_average], axis=1, sort=False)
         fig = PlottingTools.threefigs(df)
@@ -357,7 +407,7 @@ def update_biological_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
-        air_col = data['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)']  # m3/s
+        air_col = data['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)']  # m3/s
         pilwater_col = data['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)']  # m3/s
         NH4eff_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] / 1000  # mg/l to kg/m3
         NO3eff_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N']  # kg/m3
