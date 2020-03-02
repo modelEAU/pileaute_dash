@@ -261,7 +261,7 @@ def threefigs(df):
 
     flow_trace = go.Scatter(
         x=df_mid.index,
-        y=df_mid['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)'] * 1000 * 60,
+        y=df_mid['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)'] * 1000 * 60,
         connectgaps=True,
         name='Airflow rate',
         mode='lines',
@@ -275,7 +275,7 @@ def threefigs(df):
     # Average cycle
     avg_cycle_trace = go.Scatter(
         x=time,
-        y=df['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)-avg cycle'] * 1000 * 60,
+        y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-avg cycle'] * 1000 * 60,
         connectgaps=True,
         name='Average cycle',
         mode='lines',
