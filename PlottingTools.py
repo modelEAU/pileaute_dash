@@ -224,7 +224,7 @@ def threefigs(df):
     # AvN
     trace_avn = go.Scatter(
         x=time,
-        y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']* 1000 - df['pilEAUte-Pilote effluent-Varion_002-NO3_N']* 1000 +1,
+        y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']* 1000 - df['pilEAUte-Pilote effluent-Varion_002-NO3_N']* 1000,
         name='AvN difference',
         connectgaps=True,
         mode='lines+markers',
@@ -239,7 +239,7 @@ def threefigs(df):
 
     trace_avn_sp = go.Scattergl(
         x=df.index,
-        y=[1]*len(df.index),
+        y=[0]*len(df.index),
         name = 'AvN setpoint',
         mode='lines',
         legendgroup='leg3',

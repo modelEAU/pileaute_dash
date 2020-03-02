@@ -224,7 +224,7 @@ def extract_data(connexion, extract_list):
     return df
 
 
-cursor, conn = create_connection()
+'''cursor, conn = create_connection()
 
 Start = date_to_epoch('2020-02-24 17:00:00')
 End = date_to_epoch('2020-02-26 17:00:00')
@@ -250,3 +250,4 @@ df = extract_data(conn, extract_list)
 
 unit = get_units(conn, 'pilEAUte', 'Pilote reactor 4', 'FIT-420', 'Flowrate (Gas)y')
 print(unit)
+'''
