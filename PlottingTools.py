@@ -198,12 +198,12 @@ def threefigs(df):
     trace_nh4 = go.Scatter(
         x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000,
-        name='Ammonia',
+        name='NH4',
         mode='lines',
         connectgaps=True,
         line=dict(
             dash='solid',
-            color='blue'
+            color='firebrick'
         ),
     )
     fig.add_trace(trace_nh4, row=1, col=1, secondary_y=False)
@@ -212,12 +212,12 @@ def threefigs(df):
     trace_no3 = go.Scatter(
         x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000,
-        name='Nitrate',
+        name='NO3',
         connectgaps=True,
         mode='lines',
         line=dict(
             dash='solid',
-            color='turquoise'
+            color='seagreen'
         )
     )
     fig.add_trace(trace_no3, row=1, col=1, secondary_y=False)
@@ -231,13 +231,30 @@ def threefigs(df):
         mode='lines+markers',
         line=dict(
             dash='solid',
-            color='orange'
+            color='royalblue'
         ),
         marker={
             'opacity': 0
         }
     )
+
+    trace_avn_sp = go.Scattergl(
+        x=df.index,
+        y=[1]*len(df.index),
+        name = 'AvN setpoint',
+        mode='lines',
+        legendgroup='leg3',
+        line=dict(
+            color='dimgrey',
+            dash="dash",   
+        ),
+        marker={
+            'opacity': 0
+        }
+    )
+
     fig.add_trace(trace_avn, row=1, col=1, secondary_y=True)
+    fig.add_trace(trace_avn_sp, row=1, col=1, secondary_y=True)
 
     # Middle
     df_mid = df.rolling('300s').mean()
@@ -246,13 +263,15 @@ def threefigs(df):
         x=df_mid.index,
         y=df_mid['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)'] * 1000 * 60,
         connectgaps=True,
-        name='Aeration flow',
+        name='Airflow rate',
         mode='lines',
         line=dict(
             dash='solid',
-            color='red'
+            color='goldenrod'
         ),
     )
+    fig.add_trace(flow_trace, row=2, col=1)
+
     # Average cycle
     avg_cycle_trace = go.Scatter(
         x=time,
@@ -262,18 +281,46 @@ def threefigs(df):
         mode='lines',
         line=dict(
             dash='solid',
-            color='green'
+            color='blueviolet'
         ),
     )
-    fig.add_trace(flow_trace, row=2, col=1)
     fig.add_trace(avg_cycle_trace, row=3, col=1)
+
+    # Sbplot specific layouts
+    fig.update_yaxes(title_text="[mg/L]", title_font=dict(size=14),range=[0, 20], row=1, col=1, secondary_y=False)
+    fig.update_yaxes(title_text="[-]", title_font=dict(size=14),range=[0, 2], row=1, col=1, secondary_y=True)
+    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[0, 1000], row=2, col=1)
+    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[800, 900], row=3, col=1)
+
+    # General figure layout
+    showgrid=True
+    gridcolor = 'rgb(204, 204, 204)'
+    gridwidth=1
+
+    showline=True
+    linecolor='rgb(153, 153, 153)'
+    linewidth=2
+
+    fig.update_xaxes(
+        showgrid=showgrid,
+        gridwidth=gridwidth,
+        gridcolor=gridcolor,
+        showline=showline,
+        linewidth=linewidth,
+        linecolor=linecolor,
+    )
+    fig.update_yaxes(
+        showgrid=showgrid,
+        gridwidth=gridwidth,
+        gridcolor=gridcolor,
+        showline=showline,
+        linewidth=linewidth,
+        linecolor=linecolor,
+    )
+
     fig.update_layout(height=800)
-    fig.update_yaxes(range=[0, 20], row=1, col=1, secondary_y=False)
-    fig.update_yaxes(range=[0, 2], row=1, col=1, secondary_y=True)
-    fig.update_yaxes(range=[0, 1000], row=2, col=1)
-    fig.update_yaxes(range=[800, 900], row=3, col=1)
     fig.update_layout(legend_orientation="h")
-    fig.update_layout(legend=dict(x=0, y=1.2))
-    # fig.show(config={'displayModeBar': False})
+    fig.update_layout(legend=dict(x=0, y=1.1))
+    #fig.show(config={'displayModeBar': False})
 
     return fig

@@ -17,6 +17,7 @@ external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 pio.templates.default = "plotly_white"
 
 pd.options.display.float_format = '{:,.2f}'.format
+
 # USER DEFINED PARAMETERS
 NEW_DATA_INTERVAL = 10  # seconds
 DAYS_OF_DATA = 1  # days
@@ -28,8 +29,6 @@ STORE_MAX_LENGTH = INTERVAL_LENGTH_SEC  # worst-case of sensor that updates ever
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 # EXTRACT DESIRED DATA
-
-
 def AvN_shopping_list(beginning_string, ending_string):
     Project = 'pilEAUte'
     Location = [
@@ -75,7 +74,7 @@ def AvN_shopping_list(beginning_string, ending_string):
     return shopping_list
 
 
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+app = dash.Dash(__name__) #,external_stylesheets=external_stylesheets
 
 app.layout = html.Div(
     children=[
