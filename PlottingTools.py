@@ -189,7 +189,7 @@ def threefigs(df):
     # df = df.groupby(pd.Grouper(freq='300S')).first()
     fig = make_subplots(
         rows=3, cols=1,
-        specs=[[{'secondary_y': True}], [{}], [{}]],
+        specs=[[{'secondary_y': True}], [{}], [{'secondary_y': True}]],
         shared_xaxes=True,
     )
 
@@ -266,7 +266,8 @@ def threefigs(df):
         mode='lines',
         line=dict(
             dash='solid',
-            color='goldenrod'
+            color='goldenrod',
+            shape='hv'
         ),
     )
     fig.add_trace(flow_trace, row=2, col=1)
@@ -280,16 +281,34 @@ def threefigs(df):
         mode='lines',
         line=dict(
             dash='solid',
-            color='blueviolet'
+            color='blueviolet',
+            shape='hvh'
         ),
     )
-    fig.add_trace(avg_cycle_trace, row=3, col=1)
+    fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=False)
+
+    avg_cycle_trace = go.Scatter(
+        x=time,
+        y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas) - fAE']*100,
+        connectgaps=True,
+        name='Aerobic fraction',
+        mode='lines',
+        line=dict(
+            dash='solid',
+            color='darksalmon',
+            shape='hvh'
+        ),
+    )
+
+    fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=True)
+
 
     # Sbplot specific layouts
     fig.update_yaxes(title_text="[mg/L]", title_font=dict(size=14),range=[0, 20], row=1, col=1, secondary_y=False)
     fig.update_yaxes(title_text="[-]", title_font=dict(size=14),range=[-10, 10], row=1, col=1, secondary_y=True)
     fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[-50, 1000], row=2, col=1)
-    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[500, 900], row=3, col=1)
+    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[500, 1000], row=3, col=1,  secondary_y=False)
+    fig.update_yaxes(title_text="[-]", title_font=dict(size=14),range=[0, 100], row=3, col=1,  secondary_y=True)
 
     # General figure layout
     showgrid=True
