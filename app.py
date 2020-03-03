@@ -353,7 +353,7 @@ def update_influent_stats(refresh, data):
         ratio_now = COD_now / NH4_now
         ratio_24 = COD_24 / NH4_24
         df = pd.DataFrame.from_dict({
-            'Parameter': ['COD', 'NH4', 'COD/NH4'],
+            'Parameter': ['COD (mg/l)', 'NH4 (mg/l)', 'COD/NH4 (-)'],
             'Now': [f'{COD_now:.2f}', f'{NH4_now:.2f}', f'{ratio_now:.2f}'],
             'Last 24 hrs': [f'{COD_24:.2f}', f'{NH4_24:.2f}', f'{ratio_24:.2f}'],
         })
@@ -397,7 +397,7 @@ def update_effluent_stats(refresh, data):
         TINrem_24 = float(TINin_24) - float(TIN_24)
 
         df = pd.DataFrame.from_dict({
-            'Parameter': ['NH4', 'NO2', 'NO3', 'AvN', 'TIN removal'],
+            'Parameter': ['NH4 (mg/l)', 'NO2 (mg/l)', 'NO3 (mg/l)', 'AvN (-)', 'TIN removal (mg/l)'],
             'Now': [f'{NH4_now:.2f}', f'{NO2_now:.2f}', f'{NO3_now:.2f}', f'{AvN_now:.2f}', f'{TINrem_now:.2f}'],
             'Last 24 hrs': [f'{NH4_24:.2f}', f'{NO2_24:.2f}', f'{NO3_24:.2f}', f'{AvN_24:.2f}', f'{TINrem_24:.2f}'],
         })
