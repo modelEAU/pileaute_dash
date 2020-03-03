@@ -27,6 +27,7 @@ INTERVAL_LENGTH_SEC = DAYS_OF_DATA * 24 * 60 * 60
 STORE_MAX_LENGTH = INTERVAL_LENGTH_SEC  # worst-case of sensor that updates every second
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
+
 # EXTRACT DESIRED DATA
 def AvN_shopping_list(beginning_string, ending_string):
     Project = 'pilEAUte'
@@ -91,7 +92,7 @@ app.layout = html.Div(
                 'paddingLeft': '0%',
                 'paddingRight': '0%',
                 'width': '100%',
-                #'borderStyle': 'solid',
+                # 'borderStyle': 'solid',
             }
         ),
         html.Br(),
@@ -100,13 +101,13 @@ app.layout = html.Div(
                 html.Div(
                     id='graph-div',
                     children=[
-                        #html.H2(dcc.Markdown("Online data"), style={'textAlign': 'center'}),
+                        # html.H2(dcc.Markdown("Online data"), style={'textAlign': 'center'}),
                         dcc.Graph(id='avn-graph')
                     ],
                     style={
                         'float': 'left',
                         'width': '70%',
-                        #'borderStyle': 'solid',
+                        # 'borderStyle': 'solid',
                         'display': 'inline-block',
                         'paddingLeft': '2%',
                         'paddingRight': '0%',
@@ -115,13 +116,14 @@ app.layout = html.Div(
                 html.Div(
                     id='table-div',
                     children=[
-                        #html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center'}),
+                        # html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center'}),
                         html.Div(
                             id='floor-1',
                             children=[
                                 html.Div(
                                     children=[
-                                        html.H4('Influent', 
+                                        html.H4(
+                                            'Influent',
                                             style={'text-align': 'left'}
                                         ),
                                         dash_table.DataTable(
@@ -369,6 +371,7 @@ def update_effluent_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
+    
         # effluent stats
         NH4_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000
         NO3_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000
@@ -380,26 +383,17 @@ def update_effluent_stats(refresh, data):
 
         NO2_now, NO2_24 = 0, 0
 
-        AvN_now = NH4_now / NO3_now
-        AvN_24 = NH4_24 / NO3_24
-
-        TIN_now = float(NH4_now) + float(NO3_now) + float(NO2_now)
-        TIN_24 = float(NH4_24) + float(NO3_24) + float(NO2_24)
+        AvN_now = NH4_now - (NO3_now + NO2_now)
+        AvN_24 = NH4_24 - (NO3_24 + NO2_24)
 
         # influent values
         NH4in_now, NH4in_24 = calculateKPIs.stats_24(NH4in_col)
         NO3in_now, NO3in_24 = calculateKPIs.stats_24(NO3in_col)
 
-        # TIN removal
-        TINin_now = NH4in_now + NO3in_now
-        TINin_24 = NH4in_24 + NO3in_24
-        TINrem_now = float(TINin_now) - float(TIN_now)
-        TINrem_24 = float(TINin_24) - float(TIN_24)
-
         df = pd.DataFrame.from_dict({
-            'Parameter': ['NH4 (mg/l)', 'NO2 (mg/l)', 'NO3 (mg/l)', 'AvN (-)', 'TIN removal (mg/l)'],
-            'Now': [f'{NH4_now:.2f}', f'{NO2_now:.2f}', f'{NO3_now:.2f}', f'{AvN_now:.2f}', f'{TINrem_now:.2f}'],
-            'Last 24 hrs': [f'{NH4_24:.2f}', f'{NO2_24:.2f}', f'{NO3_24:.2f}', f'{AvN_24:.2f}', f'{TINrem_24:.2f}'],
+            'Parameter': ['NH4 (mg/l)', 'NO2 (mg/l)', 'NO3 (mg/l)', 'AvN difference (mg/l)'],
+            'Now': [f'{NH4_now:.2f}', f'{NO2_now:.2f}', f'{NO3_now:.2f}', f'{AvN_now:.2f}'],
+            'Last 24 hrs': [f'{NH4_24:.2f}', f'{NO2_24:.2f}', f'{NO3_24:.2f}', f'{AvN_24:.2f}'],
         })
         return df.to_dict('records')
 
@@ -434,22 +428,22 @@ def update_biological_stats(refresh, data):
         # print(f'Total TIN removed, kg, {tot_tin / 1000}')
 
         tin_air = tot_tin / tot_air
-        water_air = tot_water / tot_air
+        air_water = tot_air / tot_water
 
         df = pd.DataFrame.from_dict({
             'Parameter': [
+                'Volume of water treated (m3/d)',
+                'Volume of air (m3/d)',
+                'TIN removed (g/d)',
+                'Volume of air / Volume of treated water (m3/m3)',
                 'TIN removed/m3 air (g N/m3)',
-                'Treated water / m3 air (m3/m3d)',
-                'Volume of water treated (m3)',
-                'Volume of air (m3)',
-                'Nitrogen removed (g)'
             ],
             'Last 24 hrs': [
-                f'{tin_air:.3f}',
-                f'{water_air:.3f}',
                 f'{tot_water:.1f}',
                 f'{tot_air:.1f}',
-                f'{tot_tin:.1f}'
+                f'{tot_tin:.1f}',
+                f'{air_water:.1f}',
+                f'{tin_air:.3f}',
             ],
         })
         return df.to_dict('records')
