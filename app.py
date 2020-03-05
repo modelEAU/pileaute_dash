@@ -159,9 +159,7 @@ app.layout = html.Div(
                                 html.Br(),
                                 html.Div(
                                     children=[
-                                        html.H4('Effluent', 
-                                            style={'text-align': 'left'}
-                                        ),
+                                        html.H4('Effluent', style={'text-align': 'left'}),
                                         dash_table.DataTable(
                                             id='effluent-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
@@ -200,9 +198,7 @@ app.layout = html.Div(
                             children=[
                                 html.Div(
                                     children=[
-                                        html.H4('Cumulative Stats', 
-                                            style={'text-align': 'left'}
-                                        ),
+                                        html.H4('Cumulative Stats', style={'text-align': 'left'}),
                                         dash_table.DataTable(
                                             id='bioreactor-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Last 24 hrs']],
@@ -239,7 +235,7 @@ app.layout = html.Div(
                     style={
                         'float': 'right',
                         'width': '25%',
-                        #'borderStyle': "solid",
+                        # 'borderStyle': "solid",
                         'display': 'inline-block',
                         'paddingLeft': '0%',
                         'paddingRight': '0%',
@@ -371,7 +367,6 @@ def update_effluent_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
-    
         # effluent stats
         NH4_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000
         NO3_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000
