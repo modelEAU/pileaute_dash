@@ -128,3 +128,5 @@ dmypy.json
 .pyre/
 __pycache__/Dateaubase.cpython-37.pyc
 __pycache__/Dateaubase.cpython-37.pyc
+.vscode/settings.json
+.vscode/settings.json
