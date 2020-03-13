@@ -83,11 +83,11 @@ def peak_stats(df_column, threshold):
             buffer.append(var[var_high_indx[i]])
             var_avg.append(sum(buffer) / len(buffer))
             time_avg.append(time[var_high_indx[i] - round(len(buffer) / 2)])
-            fAE_val.append((cycle_time-var_jump[i]+1)/cycle_time)
+            fAE_val.append((cycle_time - var_jump[i] + 1) / cycle_time)
             buffer = []
 
     # Create a new dataframe and return it
-    peak_avg = pd.DataFrame(list(zip(time_avg, var_avg, fAE_val)), columns=['datetime', df_column.name + '-avg cycle', df_column.name+' - fAE'])
+    peak_avg = pd.DataFrame(list(zip(time_avg, var_avg, fAE_val)), columns=['datetime', df_column.name + '-avg cycle', df_column.name + ' - fAE'])
     peak_avg.set_index('datetime', inplace=True)
     peak_avg.index = peak_avg.index.tz_localize("UTC")
 

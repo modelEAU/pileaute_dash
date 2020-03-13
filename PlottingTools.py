@@ -224,7 +224,7 @@ def threefigs(df):
     # AvN
     trace_avn = go.Scatter(
         x=time,
-        y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']* 1000 - df['pilEAUte-Pilote effluent-Varion_002-NO3_N']* 1000,
+        y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000 - df['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000,
         name='AvN difference',
         connectgaps=True,
         mode='lines+markers',
@@ -239,13 +239,13 @@ def threefigs(df):
 
     trace_avn_sp = go.Scattergl(
         x=df.index,
-        y=[0]*len(df.index),
-        name = 'AvN setpoint',
+        y=[0] * len(df.index),
+        name='AvN setpoint',
         mode='lines',
         legendgroup='leg3',
         line=dict(
             color='dimgrey',
-            dash="dash",   
+            dash="dash",
         ),
         marker={
             'opacity': 0
@@ -289,7 +289,7 @@ def threefigs(df):
 
     avg_cycle_trace = go.Scatter(
         x=time,
-        y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas) - fAE']*100,
+        y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas) - fAE'] * 100,
         connectgaps=True,
         name='Aerobic fraction',
         mode='lines',
@@ -302,22 +302,21 @@ def threefigs(df):
 
     fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=True)
 
-
-    # Sbplot specific layouts
-    fig.update_yaxes(title_text="[mg/L]", title_font=dict(size=14),range=[0, 20], row=1, col=1, secondary_y=False)
-    fig.update_yaxes(title_text="[-]", title_font=dict(size=14),range=[-10, 10], row=1, col=1, secondary_y=True)
-    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[-50, 1000], row=2, col=1)
-    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[500, 1000], row=3, col=1,  secondary_y=False)
-    fig.update_yaxes(title_text="[-]", title_font=dict(size=14),range=[0, 100], row=3, col=1,  secondary_y=True)
+    # Subplot specific layouts
+    fig.update_yaxes(title_text="[mg/L]", title_font=dict(size=14), range=[0, 20], row=1, col=1, secondary_y=False)
+    fig.update_yaxes(title_text="[-]", title_font=dict(size=14), range=[-10, 10], row=1, col=1, secondary_y=True)
+    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14), range=[-50, 1000], row=2, col=1)
+    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14), range=[500, 1000], row=3, col=1, secondary_y=False)
+    fig.update_yaxes(title_text="[-]", title_font=dict(size=14), range=[0, 100], row=3, col=1, secondary_y=True)
 
     # General figure layout
-    showgrid=True
+    showgrid = True
     gridcolor = 'rgb(204, 204, 204)'
-    gridwidth=1
+    gridwidth = 1
 
-    showline=True
-    linecolor='rgb(153, 153, 153)'
-    linewidth=2
+    showline = True
+    linecolor = 'rgb(153, 153, 153)'
+    linewidth = 2
 
     fig.update_xaxes(
         showgrid=showgrid,
@@ -339,6 +338,6 @@ def threefigs(df):
     fig.update_layout(height=800)
     fig.update_layout(legend_orientation="h")
     fig.update_layout(legend=dict(x=0, y=1.1))
-    #fig.show(config={'displayModeBar': False})
+    # fig.show(config={'displayModeBar': False})
 
     return fig
