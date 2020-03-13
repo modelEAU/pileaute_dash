@@ -1,0 +1,26 @@
+<configuration>
+  <system.webServer>
+    <handlers>
+      <add name="pileaute_dash_Handler"
+           path="*"
+           verb="*"
+           modules="FastCgiModule"
+		   scriptProcessor="C:\Users\Administrator\Anaconda3\envs\dash\python.exe|C:\Users\Administrator\Documents\GitHub\pileaute_dash\wfastcgi.py"
+           resourceType="Unspecified"
+           requireAccess="Script" />
+    </handlers>
+  </system.webServer>
+  <appSettings>
+    <!-- Required settings -->
+    <add key="WSGI_HANDLER" value="app.app.server" />
+    <add key="PYTHONPATH" value="C:\Users\Administrator\Documents\GitHub\pileaute_dash" />
+
+    <!-- Optional settings -->
+    <add key="WSGI_LOG" value="C:\Logs\my_app.log" />
+    <add key="WSGI_RESTART_FILE_REGEX" value=".*((\.py)|(\.config))$" />
+    <add key="APPINSIGHTS_INSTRUMENTATIONKEY" value="__instrumentation_key__" />
+    <add key="DJANGO_SETTINGS_MODULE" value="my_app.settings" />
+    <add key="WSGI_PTVSD_SECRET" value="__secret_code__" />
+    <add key="WSGI_PTVSD_ADDRESS" value="ipaddress:port" />
+  </appSettings>
+</configuration>

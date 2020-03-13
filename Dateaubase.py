@@ -4,25 +4,32 @@ import pandas as pd
 import pyodbc
 
 
-def create_connection():
-    #with open('login.txt') as f:
-    #    usr = f.readline().strip()
-    #    pwd = f.readline().strip()
-    # username = usr  # input("Enter username")
-    # password = pwd  # getpass.getpass(prompt="Enter password")
-    '''config = dict(
-        server='10.10.10.10',  # change this to your SQL Server hostname or IP address
-        port=1433,  # change this to your SQL Server port number [1433 is the default]
-        database='dateaubase2020',
-        username=username,
-        password=password)'''
-    conn_str = (
-        r'Driver={SQL Server};'
-        r'Server=localhost;' #{server},{port};'
-        r'Database=dateaubase2020;'  #{database};'
-        r'Trusted_Connection=yes;'  #'UID=jeandavidt;'
+def create_connection(trusted=False):
+    if trusted:
+        conn_str = (
+            r'Driver={SQL Server};'
+            r'Server=(local);'
+            r'Database=dateaubase2020;'
+            r'Trusted_Connection=yes;'
         )
-    print(conn_str)
+    else:
+        with open('login.txt') as f:
+            usr = f.readline().strip()
+            pwd = f.readline().strip()
+        config = dict(
+            server='localhost',  # change this to your SQL Server hostname or IP address
+            port=1433,  # change this to your SQL Server port number [1433 is the default]
+            database='dateaubase2020',
+            username=usr,
+            password=pwd,
+        )
+        conn_str = (
+            'SERVER={server},{port};'
+            + 'DATABASE={database};'
+            + 'UID={username};'
+            + 'PWD={password}'
+        ).format(**config)
+        conn_str = r'DRIVER={ODBC Driver 13 for SQL Server};' + conn_str
     conn = pyodbc.connect(conn_str)
     cursor = conn.cursor()
     return cursor, conn
@@ -224,29 +231,27 @@ def extract_data(connexion, extract_list):
     return df
 
 
-'''cursor, conn = create_connection()
+if __name__ == '__main__':
+    cursor, conn = create_connection(True)
 
-Start = date_to_epoch('2020-02-24 17:00:00')
-End = date_to_epoch('2020-02-26 17:00:00')
-Location = 'Pilote reactor 4'
-Project = 'pilEAUte'
+    Start = date_to_epoch('2020-02-24 17:00:00')
+    End = date_to_epoch('2020-02-26 17:00:00')
+    Location = 'Pilote reactor 4'
+    Project = 'pilEAUte'
 
-param_list = ['Flowrate (Gas)']
-equip_list = ['FIT-420']
+    param_list = ['Flowrate (Gas)']
+    equip_list = ['FIT-420']
 
-extract_list = {}
-for i in range(len(param_list)):
-    extract_list[i] = {
-        'Start': Start,
-        'End': End,
-        'Project': Project,
-        'Location': Location,
-        'Parameter': param_list[i],
-        'Equipment': equip_list[i]
-    }
-print('ready to extract')
-df = extract_data(conn, extract_list)
-
-
-unit = get_units(conn, 'pilEAUte', 'Pilote reactor 4', 'FIT-420', 'Flowrate (Gas)y')
-print(df)'''
+    extract_list = {}
+    for i in range(len(param_list)):
+        extract_list[i] = {
+            'Start': Start,
+            'End': End,
+            'Project': Project,
+            'Location': Location,
+            'Parameter': param_list[i],
+            'Equipment': equip_list[i]
+        }
+    print('ready to extract')
+    df = extract_data(conn, extract_list)
+    print(df.head())

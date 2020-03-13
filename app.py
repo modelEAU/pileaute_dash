@@ -13,10 +13,10 @@ import Dateaubase
 import PlottingTools
 import calculateKPIs
 
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 pio.templates.default = "plotly_white"
 
 pd.options.display.float_format = '{:,.2f}'.format
-
 # USER DEFINED PARAMETERS
 NEW_DATA_INTERVAL = 10  # seconds
 DAYS_OF_DATA = 1  # days
@@ -27,8 +27,9 @@ INTERVAL_LENGTH_SEC = DAYS_OF_DATA * 24 * 60 * 60
 STORE_MAX_LENGTH = INTERVAL_LENGTH_SEC  # worst-case of sensor that updates every second
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
-
 # EXTRACT DESIRED DATA
+
+
 def AvN_shopping_list(beginning_string, ending_string):
     Project = 'pilEAUte'
     Location = [
@@ -40,7 +41,7 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Pilote effluent',
         'Pilote effluent',
         'Pilote effluent',
-        'Pilote reactor 5']
+        'Pilote reactor 4']
     equip_list = [
         'FIT-110',
         'FIT-120',
@@ -50,7 +51,7 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Varion_002',
         'Varion_002',
         'Varion_002',
-        'FIT-430']
+        'FIT-420']
     param_list = [
         'Flowrate (Liquid)',
         'Flowrate (Liquid)',
@@ -74,7 +75,8 @@ def AvN_shopping_list(beginning_string, ending_string):
     return shopping_list
 
 
-app = dash.Dash(__name__)
+app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
 
 app.layout = html.Div(
     children=[
@@ -92,7 +94,7 @@ app.layout = html.Div(
                 'paddingLeft': '0%',
                 'paddingRight': '0%',
                 'width': '100%',
-                # 'borderStyle': 'solid',
+                'borderStyle': 'solid',
             }
         ),
         html.Br(),
@@ -101,13 +103,13 @@ app.layout = html.Div(
                 html.Div(
                     id='graph-div',
                     children=[
-                        # html.H2(dcc.Markdown("Online data"), style={'textAlign': 'center'}),
+                        html.H2(dcc.Markdown("Online data"), style={'textAlign': 'center'}),
                         dcc.Graph(id='avn-graph')
                     ],
                     style={
                         'float': 'left',
                         'width': '70%',
-                        # 'borderStyle': 'solid',
+                        'borderStyle': 'solid',
                         'display': 'inline-block',
                         'paddingLeft': '2%',
                         'paddingRight': '0%',
@@ -116,36 +118,16 @@ app.layout = html.Div(
                 html.Div(
                     id='table-div',
                     children=[
-                        # html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center'}),
+                        html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center'}),
                         html.Div(
                             id='floor-1',
                             children=[
                                 html.Div(
                                     children=[
-                                        html.H4(
-                                            'Influent',
-                                            style={'text-align': 'left'}
-                                        ),
+                                        html.H4('Influent'),
                                         dash_table.DataTable(
                                             id='influent-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
-                                            style_as_list_view=True,
-                                            style_header={
-                                                'fontWeight': 'bold',
-                                                'backgroundColor': 'rgb(230, 230, 230)',
-                                            },
-                                            style_cell_conditional=[
-                                                {
-                                                    'if': {'column_id': c},
-                                                    'textAlign': 'left'
-                                                } for c in ['Parameter']
-                                            ],
-                                            style_data_conditional=[
-                                                {
-                                                    'if': {'row_index': 'odd'},
-                                                    'backgroundColor': 'rgb(248, 248, 248)'
-                                                }
-                                            ],
                                         ),
                                     ],
                                     style={
@@ -159,29 +141,10 @@ app.layout = html.Div(
                                 html.Br(),
                                 html.Div(
                                     children=[
-                                        html.H4('Effluent', 
-                                            style={'text-align': 'left'}
-                                        ),
+                                        html.H4('Effluent'),
                                         dash_table.DataTable(
                                             id='effluent-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
-                                            style_as_list_view=True,
-                                            style_header={
-                                                'fontWeight': 'bold',
-                                                'backgroundColor': 'rgb(230, 230, 230)',
-                                            },
-                                            style_cell_conditional=[
-                                                {
-                                                    'if': {'column_id': c},
-                                                    'textAlign': 'left'
-                                                } for c in ['Parameter']
-                                            ],
-                                            style_data_conditional=[
-                                                {
-                                                    'if': {'row_index': 'odd'},
-                                                    'backgroundColor': 'rgb(248, 248, 248)'
-                                                }
-                                            ],
                                         ),
                                     ],
                                     style={
@@ -200,29 +163,10 @@ app.layout = html.Div(
                             children=[
                                 html.Div(
                                     children=[
-                                        html.H4('Cumulative Stats', 
-                                            style={'text-align': 'left'}
-                                        ),
+                                        html.H4('Cumulative Stats'),
                                         dash_table.DataTable(
                                             id='bioreactor-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Last 24 hrs']],
-                                            style_as_list_view=True,
-                                            style_header={
-                                                'fontWeight': 'bold',
-                                                'backgroundColor': 'rgb(230, 230, 230)',
-                                            },
-                                            style_cell_conditional=[
-                                                {
-                                                    'if': {'column_id': c},
-                                                    'textAlign': 'left'
-                                                } for c in ['Parameter']
-                                            ],
-                                            style_data_conditional=[
-                                                {
-                                                    'if': {'row_index': 'odd'},
-                                                    'backgroundColor': 'rgb(248, 248, 248)'
-                                                }
-                                            ],
                                         )
                                     ],
                                     style={
@@ -239,7 +183,7 @@ app.layout = html.Div(
                     style={
                         'float': 'right',
                         'width': '25%',
-                        #'borderStyle': "solid",
+                        'borderStyle': "solid",
                         'display': 'inline-block',
                         'paddingLeft': '0%',
                         'paddingRight': '0%',
@@ -258,7 +202,7 @@ app.layout = html.Div(
     [State('avn-db-store', 'data')])
 def store_data(n, data):
     try:
-        _, conn = Dateaubase.create_connection()
+        _, conn = Dateaubase.create_connection(True)
     except Exception:
         raise PreventUpdate
     # print('Store update has started')
@@ -328,7 +272,7 @@ def avn_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
-        Qair_col = df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)"]
+        Qair_col = df["pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)"]
         _, peak_average = calculateKPIs.peak_stats(Qair_col, 400 / (60 * 1000))
         df = pd.concat([df, peak_average], axis=1, sort=False)
         fig = PlottingTools.threefigs(df)
@@ -355,7 +299,7 @@ def update_influent_stats(refresh, data):
         ratio_now = COD_now / NH4_now
         ratio_24 = COD_24 / NH4_24
         df = pd.DataFrame.from_dict({
-            'Parameter': ['COD (mg/l)', 'NH4 (mg/l)', 'COD/NH4 (-)'],
+            'Parameter': ['COD', 'NH4', 'COD/NH4'],
             'Now': [f'{COD_now:.2f}', f'{NH4_now:.2f}', f'{ratio_now:.2f}'],
             'Last 24 hrs': [f'{COD_24:.2f}', f'{NH4_24:.2f}', f'{ratio_24:.2f}'],
         })
@@ -371,7 +315,6 @@ def update_effluent_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
-    
         # effluent stats
         NH4_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000
         NO3_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000
@@ -383,17 +326,26 @@ def update_effluent_stats(refresh, data):
 
         NO2_now, NO2_24 = 0, 0
 
-        AvN_now = NH4_now - (NO3_now + NO2_now)
-        AvN_24 = NH4_24 - (NO3_24 + NO2_24)
+        AvN_now = NH4_now / NO3_now
+        AvN_24 = NH4_24 / NO3_24
+
+        TIN_now = float(NH4_now) + float(NO3_now) + float(NO2_now)
+        TIN_24 = float(NH4_24) + float(NO3_24) + float(NO2_24)
 
         # influent values
         NH4in_now, NH4in_24 = calculateKPIs.stats_24(NH4in_col)
         NO3in_now, NO3in_24 = calculateKPIs.stats_24(NO3in_col)
 
+        # TIN removal
+        TINin_now = NH4in_now + NO3in_now
+        TINin_24 = NH4in_24 + NO3in_24
+        TINrem_now = float(TINin_now) - float(TIN_now)
+        TINrem_24 = float(TINin_24) - float(TIN_24)
+
         df = pd.DataFrame.from_dict({
-            'Parameter': ['NH4 (mg/l)', 'NO2 (mg/l)', 'NO3 (mg/l)', 'AvN difference (mg/l)'],
-            'Now': [f'{NH4_now:.2f}', f'{NO2_now:.2f}', f'{NO3_now:.2f}', f'{AvN_now:.2f}'],
-            'Last 24 hrs': [f'{NH4_24:.2f}', f'{NO2_24:.2f}', f'{NO3_24:.2f}', f'{AvN_24:.2f}'],
+            'Parameter': ['NH4', 'NO2', 'NO3', 'AvN', 'TIN removal'],
+            'Now': [f'{NH4_now:.2f}', f'{NO2_now:.2f}', f'{NO3_now:.2f}', f'{AvN_now:.2f}', f'{TINrem_now:.2f}'],
+            'Last 24 hrs': [f'{NH4_24:.2f}', f'{NO2_24:.2f}', f'{NO3_24:.2f}', f'{AvN_24:.2f}', f'{TINrem_24:.2f}'],
         })
         return df.to_dict('records')
 
@@ -407,7 +359,7 @@ def update_biological_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
-        air_col = data['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)']  # m3/s
+        air_col = data['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)']  # m3/s
         pilwater_col = data['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)']  # m3/s
         NH4eff_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] / 1000  # mg/l to kg/m3
         NO3eff_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N']  # kg/m3
@@ -428,26 +380,26 @@ def update_biological_stats(refresh, data):
         # print(f'Total TIN removed, kg, {tot_tin / 1000}')
 
         tin_air = tot_tin / tot_air
-        air_water = tot_air / tot_water
+        water_air = tot_water / tot_air
 
         df = pd.DataFrame.from_dict({
             'Parameter': [
-                'Volume of water treated (m3/d)',
-                'Volume of air (m3/d)',
-                'TIN removed (g/d)',
-                'Volume of air / Volume of treated water (m3/m3)',
                 'TIN removed/m3 air (g N/m3)',
+                'Treated water / m3 air (m3/m3d)',
+                'Volume of water treated (m3)',
+                'Volume of air (m3)',
+                'Nitrogen removed (g)'
             ],
             'Last 24 hrs': [
+                f'{tin_air:.3f}',
+                f'{water_air:.3f}',
                 f'{tot_water:.1f}',
                 f'{tot_air:.1f}',
-                f'{tot_tin:.1f}',
-                f'{air_water:.1f}',
-                f'{tin_air:.3f}',
+                f'{tot_tin:.1f}'
             ],
         })
         return df.to_dict('records')
 
-
+server = app.server
 if __name__ == '__main__':
     app.run_server(debug=True)
