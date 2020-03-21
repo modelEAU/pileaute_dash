@@ -6,6 +6,7 @@ import dash_html_components as html
 import dash_table
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
+
 import pandas as pd
 import plotly.io as pio
 
@@ -17,6 +18,10 @@ pio.templates.default = "plotly_white"
 
 pd.options.display.float_format = '{:,.2f}'.format
 
+
+engine = Dateaubase.create_connection()
+
+print('connect successful')
 # USER DEFINED PARAMETERS
 NEW_DATA_INTERVAL = 10  # seconds
 DAYS_OF_DATA = 1  # days
@@ -124,7 +129,7 @@ app.layout = html.Div(
                                     children=[
                                         html.H4(
                                             'Influent',
-                                            style={'text-align': 'left'}
+                                            style={'textAlign': 'left'}
                                         ),
                                         dash_table.DataTable(
                                             id='influent-table',
@@ -159,8 +164,9 @@ app.layout = html.Div(
                                 html.Br(),
                                 html.Div(
                                     children=[
-                                        html.H4('Effluent', 
-                                            style={'text-align': 'left'}
+                                        html.H4(
+                                            'Effluent',
+                                            style={'textAlign': 'left'},
                                         ),
                                         dash_table.DataTable(
                                             id='effluent-table',
@@ -200,8 +206,9 @@ app.layout = html.Div(
                             children=[
                                 html.Div(
                                     children=[
-                                        html.H4('Cumulative Stats', 
-                                            style={'text-align': 'left'}
+                                        html.H4(
+                                            'Cumulative Stats',
+                                            style={'textAlign': 'left'}
                                         ),
                                         dash_table.DataTable(
                                             id='bioreactor-table',
@@ -239,7 +246,7 @@ app.layout = html.Div(
                     style={
                         'float': 'right',
                         'width': '25%',
-                        #'borderStyle': "solid",
+                        # 'borderStyle': "solid",
                         'display': 'inline-block',
                         'paddingLeft': '0%',
                         'paddingRight': '0%',
@@ -257,11 +264,6 @@ app.layout = html.Div(
     [Input('refresh-interval', 'n_intervals')],
     [State('avn-db-store', 'data')])
 def store_data(n, data):
-    try:
-        _, conn = Dateaubase.create_connection()
-    except Exception:
-        raise PreventUpdate
-    # print('Store update has started')
     try:
         end_time, start_time = (
             pd.to_datetime(
@@ -296,7 +298,7 @@ def store_data(n, data):
     # print(f'{len(stored_df)} points are in the store')
     # print(f'Data from {start_string} to {end_string} will be extracted.')
     extract_list = AvN_shopping_list(start_string, end_string)
-    new_df = Dateaubase.extract_data(conn, extract_list)
+    new_df = Dateaubase.extract_data(engine, extract_list)
 
     if len(stored_df) == 0:
         # print('No stored data')
@@ -371,7 +373,7 @@ def update_effluent_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
-    
+
         # effluent stats
         NH4_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000
         NO3_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000
