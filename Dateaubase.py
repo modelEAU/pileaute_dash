@@ -9,11 +9,12 @@ COMPUTER_NAME = os.environ['COMPUTERNAME']
 
 
 def create_connection():
-    if COMPUTER_NAME != 'GCI-PR-DATEAU1':
+    if COMPUTER_NAME != 'GCI-PR-DATEAU01':
         engine = create_engine(f'mssql+pyodbc://jeandavidt:koopa6425@10.10.10.10:1433/{DATABASE}?driver=ODBC+Driver+13+for+SQL+Server', fast_executemany=True)
         print('engine created')
     else:
-        engine = create_engine(f'mssql://GCI-PR-DATEAU01/DATEAUBASE/{DATABASE}?trusted_connection=yes', fast_executemany=True)
+        engine = create_engine(f'mssql+pyodbc://@10.10.10.10/{DATABASE}?trusted_connection=yes&driver=ODBC+Driver+11+for+SQL+Server', fast_executemany=True)
+    print(engine.url)
     engine.connect()
     print('engine connected')
     return engine
