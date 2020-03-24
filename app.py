@@ -4,6 +4,8 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import dash_table
+import ptvsd
+
 from dash.dependencies import Input, Output, State
 from dash.exceptions import PreventUpdate
 
@@ -13,6 +15,7 @@ import plotly.io as pio
 import Dateaubase
 import PlottingTools
 import calculateKPIs
+
 
 pio.templates.default = "plotly_white"
 
@@ -453,3 +456,6 @@ def update_biological_stats(refresh, data):
 
 if __name__ == '__main__':
     app.run_server(debug=True)
+else:
+    ptvsd.enable_attach(log_dir='C:\\Users\\Administrator\\Desktop\\pileaute_dash_logs')
+    server = app.server
