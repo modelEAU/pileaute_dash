@@ -2,9 +2,42 @@ from itertools import cycle
 
 import plotly.graph_objects as go
 import pandas as pd
+import numpy as np
+import time
+
 from plotly.subplots import make_subplots
 
 COLORWAY = ['#f3cec9', '#e7a4b6', '#cd7eaf', '#a262a9', '#6f4d96', '#3d3b72', '#182844']
+
+def debug():
+    N = 1000
+    t = np.linspace(0, 10, 100)
+    y = np.sin(t)
+
+    fig = go.Figure(data=go.Scatter(x=t, y=y, mode='lines'))
+    return fig
+
+
+def debug_app(df):
+    time = df.index
+    traces = []
+    for col in df.columns:
+        trace = go.Scatter(
+            x=time,
+            y=df[col],
+            mode='lines',
+            line=dict(
+              dash='solid',
+            ),
+            marker=dict(
+                opacity=0,
+            ),
+            name=col.split('-')[-1],
+        )
+        traces.append(trace)
+
+    fig = go.Figure(data=traces)
+    return fig
 
 
 def extract_plotly(df):
@@ -195,7 +228,7 @@ def threefigs(df):
 
     # Top
     # NH4
-    trace_nh4 = go.Scatter(
+    trace_nh4 = go.Scattergl(
         x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000,
         name='NH4',
@@ -209,7 +242,7 @@ def threefigs(df):
     fig.add_trace(trace_nh4, row=1, col=1, secondary_y=False)
 
     # NO3
-    trace_no3 = go.Scatter(
+    trace_no3 = go.Scattergl(
         x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000,
         name='NO3',
@@ -222,7 +255,7 @@ def threefigs(df):
     )
     fig.add_trace(trace_no3, row=1, col=1, secondary_y=False)
     # AvN
-    trace_avn = go.Scatter(
+    trace_avn = go.Scattergl(
         x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']* 1000 - df['pilEAUte-Pilote effluent-Varion_002-NO3_N']* 1000,
         name='AvN difference',
@@ -258,7 +291,7 @@ def threefigs(df):
     # Middle
     df_mid = df.rolling('300s').mean()
 
-    flow_trace = go.Scatter(
+    flow_trace = go.Scattergl(
         x=df_mid.index,
         y=df_mid['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)'] * 1000 * 60,
         connectgaps=True,
@@ -273,7 +306,7 @@ def threefigs(df):
     fig.add_trace(flow_trace, row=2, col=1)
 
     # Average cycle
-    avg_cycle_trace = go.Scatter(
+    avg_cycle_trace = go.Scattergl(
         x=time,
         y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-avg cycle'] * 1000 * 60,
         connectgaps=True,
@@ -287,9 +320,9 @@ def threefigs(df):
     )
     fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=False)
 
-    avg_cycle_trace = go.Scatter(
+    avg_cycle_trace = go.Scattergl(
         x=time,
-        y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas) - fAE']*100,
+        y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-fAE']*100,
         connectgaps=True,
         name='Aerobic fraction',
         mode='lines',
@@ -342,3 +375,10 @@ def threefigs(df):
     #fig.show(config={'displayModeBar': False})
 
     return fig
+
+if __name__ == '__main__':
+    start = time.time()
+    fig = debug()
+    fig.show()
+    end = time.time()
+    print(f'This took {end-start} seconds')
