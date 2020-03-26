@@ -27,16 +27,17 @@ def debug_app(df):
             y=df[col],
             mode='lines',
             line=dict(
-              dash='solid',
+                dash='solid',
             ),
             marker=dict(
                 opacity=0,
             ),
             name=col.split('-')[-1],
+            
         )
         traces.append(trace)
-
     fig = go.Figure(data=traces)
+    fig.update_traces(connectgaps=True)
     return fig
 
 
@@ -218,8 +219,9 @@ def airflow_plot(df):
 
 def threefigs(df):
     time = df.index
-
-    # df = df.groupby(pd.Grouper(freq='300S')).first()
+    '''df.sort_index(inplace=True)
+    df.fillna(inplace=True, method='ffill')
+    df = df.groupby(pd.Grouper(freq='300S')).first()'''
     fig = make_subplots(
         rows=3, cols=1,
         specs=[[{'secondary_y': True}], [{}], [{'secondary_y': True}]],
@@ -233,7 +235,6 @@ def threefigs(df):
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000,
         name='NH4',
         mode='lines',
-        connectgaps=True,
         line=dict(
             dash='solid',
             color='firebrick'
@@ -246,7 +247,6 @@ def threefigs(df):
         x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000,
         name='NO3',
-        connectgaps=True,
         mode='lines',
         line=dict(
             dash='solid',
@@ -255,11 +255,10 @@ def threefigs(df):
     )
     fig.add_trace(trace_no3, row=1, col=1, secondary_y=False)
     # AvN
-    trace_avn = go.Scattergl(
+    trace_avn = go.Scatter(
         x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']* 1000 - df['pilEAUte-Pilote effluent-Varion_002-NO3_N']* 1000,
         name='AvN difference',
-        connectgaps=True,
         mode='lines+markers',
         line=dict(
             dash='solid',
@@ -269,8 +268,9 @@ def threefigs(df):
             'opacity': 0
         }
     )
+    fig.add_trace(trace_avn, row=1, col=1, secondary_y=True)
 
-    trace_avn_sp = go.Scattergl(
+    trace_avn_sp = go.Scatter(
         x=df.index,
         y=[0]*len(df.index),
         name = 'AvN setpoint',
@@ -284,17 +284,14 @@ def threefigs(df):
             'opacity': 0
         }
     )
-
-    fig.add_trace(trace_avn, row=1, col=1, secondary_y=True)
     fig.add_trace(trace_avn_sp, row=1, col=1, secondary_y=True)
 
     # Middle
     df_mid = df.rolling('300s').mean()
 
-    flow_trace = go.Scattergl(
+    flow_trace = go.Scatter(
         x=df_mid.index,
         y=df_mid['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)'] * 1000 * 60,
-        connectgaps=True,
         name='Airflow rate',
         mode='lines',
         line=dict(
@@ -306,42 +303,40 @@ def threefigs(df):
     fig.add_trace(flow_trace, row=2, col=1)
 
     # Average cycle
-    avg_cycle_trace = go.Scattergl(
+    avg_cycle_trace = go.Scatter(
         x=time,
         y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-avg cycle'] * 1000 * 60,
-        connectgaps=True,
         name='Average cycle',
         mode='lines',
         line=dict(
             dash='solid',
             color='blueviolet',
-            shape='hvh'
+            shape='hvh'  # 'hvh'
         ),
     )
     fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=False)
 
-    avg_cycle_trace = go.Scattergl(
+    avg_cycle_trace = go.Scatter(
         x=time,
         y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-fAE']*100,
-        connectgaps=True,
         name='Aerobic fraction',
         mode='lines',
         line=dict(
             dash='solid',
             color='darksalmon',
-            shape='hvh'
+            shape='hvh'  # 'hvh'
         ),
     )
 
     fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=True)
 
 
-    # Sbplot specific layouts
+    # Subplot specific layouts
     fig.update_yaxes(title_text="[mg/L]", title_font=dict(size=14),range=[0, 20], row=1, col=1, secondary_y=False)
     fig.update_yaxes(title_text="[-]", title_font=dict(size=14),range=[-10, 10], row=1, col=1, secondary_y=True)
     fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[-50, 1000], row=2, col=1)
     fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14),range=[500, 1000], row=3, col=1,  secondary_y=False)
-    fig.update_yaxes(title_text="[-]", title_font=dict(size=14),range=[0, 100], row=3, col=1,  secondary_y=True)
+    fig.update_yaxes(title_text="[-]", title_font=dict(size=14), range=[0, 100], row=3, col=1,  secondary_y=True)
 
     # General figure layout
     showgrid=True
@@ -373,7 +368,7 @@ def threefigs(df):
     fig.update_layout(legend_orientation="h")
     fig.update_layout(legend=dict(x=0, y=1.1))
     #fig.show(config={'displayModeBar': False})
-
+    fig.update_traces(connectgaps=True)
     return fig
 
 if __name__ == '__main__':
