@@ -111,7 +111,7 @@ def store_data(n):
     extract_list = AvN_shopping_list(start_string, end_string)
     print('trying to get new data')
     new_df = Dateaubase.extract_data(engine, extract_list)
-    return('data extracted')
+    return 'data extracted'
 
 
 @app.callback(

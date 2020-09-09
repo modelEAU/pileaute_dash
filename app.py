@@ -23,7 +23,7 @@ engine = Dateaubase.create_connection()
 
 print('connect successful')
 # USER DEFINED PARAMETERS
-NEW_DATA_INTERVAL = 60  # seconds
+NEW_DATA_INTERVAL = 30  # seconds
 DAYS_OF_DATA = 1  # days
 OFFSET = 0  # weeks
 
@@ -338,7 +338,7 @@ def avn_graph(data):
         df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-fAE"].interpolate(method='linear', inplace=True)
         for col in df.columns:
             print(col, len(df[col].dropna()))
-        fig = PlottingTools.debug_app(df)
+        fig = PlottingTools.threefigs(df)
         print('finished creating the figure')
         # print('AvN fig has been created')
         return fig

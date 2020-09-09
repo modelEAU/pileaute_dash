@@ -129,3 +129,5 @@ dmypy.json
 
 __pycache__/Dateaubase.cpython-37.pyc
 .vscode/settings.json
+web.config
+.vscode/settings.json
