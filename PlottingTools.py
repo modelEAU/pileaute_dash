@@ -233,7 +233,7 @@ def threefigs(df):
     fig.add_trace(trace_avn, row=1, col=1, secondary_y=True)
 
     # Middle
-    df_mid = df.rolling('300s').mean()
+    df_mid = df.sort_index().rolling('300s').mean()
     flow_trace = go.Scattergl(
         x=df_mid.index,
         y=df_mid['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)'] * 1000 * 60,

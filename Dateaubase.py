@@ -1,33 +1,47 @@
 # ## ATTENTION: This script only works on Windows with
 # ## a VPN connection opened to the DatEAUbase Server
 import pandas as pd
-import pyodbc
+from collections import namedtuple
+from sqlalchemy import create_engine
+from urllib import parse
 import time
 
+# Setting constants
+database_name = 'dateaubase2020'
+local_server = r'GCI-PR-DATEAU02\DATEAUBASE'
+remote_server = r'132.203.190.77\DATEAUBASE'
 
-def create_connection():
-    with open('login.txt') as f:
-        usr = f.readline().strip()
-        pwd = f.readline().strip()
-    username = usr  # input("Enter username")
-    password = pwd  # getpass.getpass(prompt="Enter password")
-    config = dict(
-        server='10.10.10.10',  # change this to your SQL Server hostname or IP address
-        port=1433,  # change this to your SQL Server port number [1433 is the default]
-        database='dateaubase',
-        username=username,
-        password=password)
-    conn_str = (
-        'SERVER={server},{port};'
-        + 'DATABASE={database};'
-        + 'UID={username};'
-        + 'PWD={password}')
-    conn = pyodbc.connect(
-        r'DRIVER={ODBC Driver 13 for SQL Server};'
-        + conn_str.format(**config))
-    cursor = conn.cursor()
-    return cursor, conn
+with open('login.txt') as f:
+    username = f.readline().strip()
+    password = f.readline().strip()
 
+
+def connect_local(server, database):
+    engine = create_engine(f'mssql://{local_server}/{database}?driver=SQL+Server?trusted_connection=yes', connect_args={'connect_timeout': 2}, fast_executemany=True)
+    return engine
+
+
+def connect_remote(server, database, login_file):
+    with open(login_file) as f:
+        username = f.readline().strip()
+        password = parse.quote_plus(f.readline().strip())
+    engine = create_engine(f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server', connect_args={'connect_timeout': 2}, fast_executemany=True)
+    return engine
+
+def get_last(db_engine):
+    query = 'SELECT Value_ID, Timestamp FROM dbo.value WHERE Value_ID = (SELECT MAX(Value_ID) FROM dbo.value)'
+    result = db_engine.execute(query)
+    Record = namedtuple('record', result.keys())
+    records = [Record(*r) for r in result.fetchall()]
+    return records[0]
+
+def engine_runs(engine):
+    try:
+        _ = get_last(engine)
+    except Exception:
+        return False
+    else:
+        return True
 
 def date_to_epoch(date):
     naive_datetime = pd.to_datetime(date)
@@ -226,25 +240,45 @@ def extract_data(connexion, extract_list):
     return df
 
 
-'''cursor, conn = create_connection()
-Start = date_to_epoch('2017-09-01 12:00:00')
-End = date_to_epoch('2017-10-01 12:00:00')
-Location = 'Primary settling tank effluent'
-Project = 'pilEAUte'
+def debug(engine):
+    Start = date_to_epoch('2019-09-01 12:00:00')
+    End = date_to_epoch('2019-10-01 12:00:00')
+    Location = 'Primary settling tank effluent'
+    Project = 'pilEAUte'
 
-param_list = ['COD','CODf','NH4-N','K']
-equip_list = ['Spectro_010','Spectro_010','Ammo_005','Ammo_005']
+    param_list = ['COD','CODf','NH4-N','K']
+    equip_list = ['Spectro_010','Spectro_010','Ammo_005','Ammo_005']
 
-extract_list={}
-for i in range(len(param_list)):
-    extract_list[i] = {
-        'Start':Start,
-        'End':End,
-        'Project':Project,
-        'Location':Location,
-        'Parameter':param_list[i],
-        'Equipment':equip_list[i]
-    }
-print('ready to extract')
-df = extract_data(conn, extract_list)
-print(len(df))'''
+    extract_list={}
+    for i in range(len(param_list)):
+        extract_list[i] = {
+            'Start':Start,
+            'End':End,
+            'Project':Project,
+            'Location':Location,
+            'Parameter':param_list[i],
+            'Equipment':equip_list[i]
+        }
+    print('ready to extract')
+    df = extract_data(engine, extract_list)
+    print(len(df))
+
+# ________Main Script_________
+if __name__ == "__main__":
+    engine = connect_local(local_server, database_name)
+    if engine_runs(engine):
+        print('local connection engine is running')
+    else:
+        print('local connection engine failed to connect. Trying remote')
+        engine = connect_remote(remote_server, database_name, 'login.txt')
+        if engine_runs(engine):
+            print('remote connection engine is running')
+        else:
+            print('Remote connection engine failed to connect. Quitting.')
+
+    try:
+        debug(engine)
+    except Exception as e:
+        print(e)
+    finally:
+        engine.dispose()

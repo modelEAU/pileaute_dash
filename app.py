@@ -14,6 +14,8 @@ import PlottingTools
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 pio.templates.default = "plotly_white"
 
+DATABASE_NAME = 'dateaubase2020'
+LOCAL_SERVER = r'GCI-PR-DATEAU02\DATEAUBASE'
 NEW_DATA_INTERVAL = 30  # in seconds
 DAYS_OF_DATA = 1
 MINUTES_OF_DATA = 300
@@ -66,7 +68,7 @@ app.layout = html.Div(
     [State('avn-db-store', 'data')])
 def store_data(n, data):
     try:
-        _, conn = Dateaubase.create_connection()
+        conn = Dateaubase.connect_local(LOCAL_SERVER, DATABASE_NAME)
     except Exception:
         raise PreventUpdate
     print('Store update has started')
