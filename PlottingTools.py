@@ -13,9 +13,7 @@ def debug():
     N = 1000
     t = np.linspace(0, 10, 100)
     y = np.sin(t)
-
-    fig = go.Figure(data=go.Scatter(x=t, y=y, mode='lines'))
-    return fig
+    return go.Figure(data=go.Scatter(x=t, y=y, mode='lines'))
 
 
 def debug_app(df):
@@ -33,7 +31,7 @@ def debug_app(df):
                 opacity=0,
             ),
             name=col.split('-')[-1],
-            
+
         )
         traces.append(trace)
     fig = go.Figure(data=traces)
@@ -113,7 +111,7 @@ def extract_plotly(df):
 
 def avn_plot(df):
     df = df.groupby(pd.Grouper(freq='300S')).first()
-    df.index = df.index.tz_convert('US/Eastern')
+    #df.index = df.index.tz_convert('US/Eastern')
 #   df = df[df['pilEAUte-Pilote effluent-Varion_002-NH4_N'].notnull()]
     fig = go.Figure()
     # NH4
@@ -278,7 +276,7 @@ def threefigs(df):
         legendgroup='leg3',
         line=dict(
             color='dimgrey',
-            dash="dash",   
+            dash="dash",
         ),
         marker={
             'opacity': 0
@@ -303,32 +301,34 @@ def threefigs(df):
     fig.add_trace(flow_trace, row=2, col=1)
 
     # Average cycle
-    avg_cycle_trace = go.Scatter(
-        x=time,
-        y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-avg cycle'] * 1000 * 60,
-        name='Average cycle',
-        mode='lines',
-        line=dict(
-            dash='solid',
-            color='blueviolet',
-            shape='hvh'  # 'hvh'
-        ),
-    )
-    fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=False)
+    if 'pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-avg cycle' in df.columns:
+        avg_cycle_trace = go.Scatter(
+            x=time,
+            y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-avg cycle'] * 1000 * 60,
+            name='Average cycle',
+            mode='lines',
+            line=dict(
+                dash='solid',
+                color='blueviolet',
+                shape='hvh'  # 'hvh'
+            ),
+        )
+        fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=False)
 
-    avg_cycle_trace = go.Scatter(
-        x=time,
-        y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-fAE']*100,
-        name='Aerobic fraction',
-        mode='lines',
-        line=dict(
-            dash='solid',
-            color='darksalmon',
-            shape='hvh'  # 'hvh'
-        ),
-    )
+    if 'pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-fAE' in df.columns:
+        avg_cycle_trace = go.Scatter(
+            x=time,
+            y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-fAE']*100,
+            name='Aerobic fraction',
+            mode='lines',
+            line=dict(
+                dash='solid',
+                color='darksalmon',
+                shape='hvh'  # 'hvh'
+            ),
+        )
 
-    fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=True)
+        fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=True)
 
 
     # Subplot specific layouts

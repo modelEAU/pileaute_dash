@@ -19,13 +19,15 @@ pio.templates.default = "plotly_white"
 pd.options.display.float_format = '{:,.2f}'.format
 
 
-engine = Dateaubase.create_connection()
+engine = Dateaubase.connect_remote(Dateaubase.remote_server, "dateaubase2020", "login.txt")
 
-print('connect successful')
+if Dateaubase.engine_runs(engine):
+    print('connect successful')
+
 # USER DEFINED PARAMETERS
 NEW_DATA_INTERVAL = 30  # seconds
 DAYS_OF_DATA = 1  # days
-OFFSET = 0  # weeks
+OFFSET = 34  # weeks
 
 # INITIALIZATION
 INTERVAL_LENGTH_SEC = DAYS_OF_DATA * 24 * 60 * 60
@@ -286,26 +288,27 @@ def store_data(n, data):
         # print(f'{last_string} - last update')
         if last_time > start_time:
             start_string = last_string
-    # print(f'{len(stored_df)} points are in the store')
-    # print(f'Data from {start_string} to {end_string} will be extracted.')
+    print(f'{len(stored_df)} points are in the store')
+    print(f'Data from {start_string} to {end_string} will be extracted.')
     extract_list = AvN_shopping_list(start_string, end_string)
     print('trying to get new data')
     new_df = Dateaubase.extract_data(engine, extract_list)
+    print("new_df_TzInfo", new_df.index[0].tzinfo)
     print('data extracted')
 
     if len(stored_df) == 0:
-        # print('No stored data')
+        print('No stored data')
         complete_df = new_df
     else:
         if len(new_df) == 0:
-            # print('No new data. Update aborted.')
+            print('No new data. Update aborted.')
             raise PreventUpdate
         else:
             current_time = pd.to_datetime(datetime.now())
-            print(current_time)
+            #print(current_time)
             print('Updating store with new data')
             print(f'{len(new_df)} new lines')
-            # print(f'stored_df has {len(stored_df)} lines')
+            print(f'stored_df has {len(stored_df)} lines')
             complete_df = pd.concat([stored_df, new_df], sort=True)
             complete_df = complete_df.iloc[len(new_df):]
             # print(f'complete_df has {len(complete_df)} lines')
@@ -323,24 +326,29 @@ def avn_graph(data):
         raise PreventUpdate
     else:
         df = pd.read_json(data)
-        
-        Qair_col = df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)"]
-        _, peak_average = calculateKPIs.peak_stats(Qair_col, 400 / (60 * 1000))
+        if len(df) == 0:
+            raise PreventUpdate
+        else:
+            Qair_col = df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)"]
+            print(Qair_col.mean())
 
-        print('before concat')
-        for col in df.columns:
-            print(col, len(df[col].dropna()))
-        df = pd.concat([df, peak_average], axis=1, sort=False)
-        df = df[~df.isna()]
-        print('trying to graph')
-        print('After concat',len(df))
-        df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-avg cycle"].interpolate(method='linear', inplace=True)
-        df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-fAE"].interpolate(method='linear', inplace=True)
-        for col in df.columns:
-            print(col, len(df[col].dropna()))
-        fig = PlottingTools.threefigs(df)
-        print('finished creating the figure')
-        # print('AvN fig has been created')
+            _, peak_average = calculateKPIs.peak_stats(Qair_col, 400 / (60 * 1000))
+            #print("Peak average", peak_average)
+            df.index = df.index.map(lambda x: x.tz_localize(None))
+            # for col in df.columns:
+            #    print(col, len(df[col].dropna()))
+            if len(peak_average) != 0:
+                df = pd.concat([df, peak_average], axis=1, sort=False)
+                df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-avg cycle"].interpolate(method='linear', inplace=True)
+                df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-fAE"].interpolate(method='linear', inplace=True)
+            df = df[~df.isna()]
+            print('trying to graph')
+            print('After concat',len(df))
+            # for col in df.columns:
+                #print(col, len(df[col].dropna()))
+            fig = PlottingTools.threefigs(df)
+            print('finished creating the figure')
+            # print('AvN fig has been created')
         return fig
 
 
@@ -353,20 +361,24 @@ def update_influent_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
-        NH4_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
-        COD_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-COD'] * 1000
-        # print(NH4_col.tail())
-        NH4_now, NH4_24 = calculateKPIs.stats_24(NH4_col)
+        if len(data) == 0:
+            raise PreventUpdate
+        else:
+            data.index = data.index.map(lambda x: x.tz_localize(None))
+            NH4_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
+            COD_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-COD'] * 1000
+            print(NH4_col.mean())
+            NH4_now, NH4_24 = calculateKPIs.stats_24(NH4_col, OFFSET)
 
-        COD_now, COD_24 = calculateKPIs.stats_24(COD_col)
+            COD_now, COD_24 = calculateKPIs.stats_24(COD_col, OFFSET)
 
-        ratio_now = COD_now / NH4_now
-        ratio_24 = COD_24 / NH4_24
-        df = pd.DataFrame.from_dict({
-            'Parameter': ['COD (mg/l)', 'NH4 (mg/l)', 'COD/NH4 (-)'],
-            'Now': [f'{COD_now:.2f}', f'{NH4_now:.2f}', f'{ratio_now:.2f}'],
-            'Last 24 hrs': [f'{COD_24:.2f}', f'{NH4_24:.2f}', f'{ratio_24:.2f}'],
-        })
+            ratio_now = COD_now / NH4_now
+            ratio_24 = COD_24 / NH4_24
+            df = pd.DataFrame.from_dict({
+                'Parameter': ['COD (mg/l)', 'NH4 (mg/l)', 'COD/NH4 (-)'],
+                'Now': [f'{COD_now:.2f}', f'{NH4_now:.2f}', f'{ratio_now:.2f}'],
+                'Last 24 hrs': [f'{COD_24:.2f}', f'{NH4_24:.2f}', f'{ratio_24:.2f}'],
+            })
         return df.to_dict('records')
 
 
@@ -379,30 +391,32 @@ def update_effluent_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
+        if len(data) == 0:
+            raise PreventUpdate
+        else:  # effluent stats
+            data.index = data.index.map(lambda x: x.tz_localize(None))
+            NH4_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000
+            NO3_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000
+            NH4in_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
+            NO3in_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-NO3_N']
+            NH4_now, NH4_24 = calculateKPIs.stats_24(NH4_col, OFFSET)
 
-        # effluent stats
-        NH4_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000
-        NO3_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000
-        NH4in_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
-        NO3in_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-NO3_N']
-        NH4_now, NH4_24 = calculateKPIs.stats_24(NH4_col)
+            NO3_now, NO3_24 = calculateKPIs.stats_24(NO3_col, OFFSET)
 
-        NO3_now, NO3_24 = calculateKPIs.stats_24(NO3_col)
+            NO2_now, NO2_24 = 0, 0
 
-        NO2_now, NO2_24 = 0, 0
+            AvN_now = NH4_now - (NO3_now + NO2_now)
+            AvN_24 = NH4_24 - (NO3_24 + NO2_24)
 
-        AvN_now = NH4_now - (NO3_now + NO2_now)
-        AvN_24 = NH4_24 - (NO3_24 + NO2_24)
+            # influent values
+            NH4in_now, NH4in_24 = calculateKPIs.stats_24(NH4in_col, OFFSET)
+            NO3in_now, NO3in_24 = calculateKPIs.stats_24(NO3in_col, OFFSET)
 
-        # influent values
-        NH4in_now, NH4in_24 = calculateKPIs.stats_24(NH4in_col)
-        NO3in_now, NO3in_24 = calculateKPIs.stats_24(NO3in_col)
-
-        df = pd.DataFrame.from_dict({
-            'Parameter': ['NH4 (mg/l)', 'NO2 (mg/l)', 'NO3 (mg/l)', 'AvN difference (mg/l)'],
-            'Now': [f'{NH4_now:.2f}', f'{NO2_now:.2f}', f'{NO3_now:.2f}', f'{AvN_now:.2f}'],
-            'Last 24 hrs': [f'{NH4_24:.2f}', f'{NO2_24:.2f}', f'{NO3_24:.2f}', f'{AvN_24:.2f}'],
-        })
+            df = pd.DataFrame.from_dict({
+                'Parameter': ['NH4 (mg/l)', 'NO2 (mg/l)', 'NO3 (mg/l)', 'AvN difference (mg/l)'],
+                'Now': [f'{NH4_now:.2f}', f'{NO2_now:.2f}', f'{NO3_now:.2f}', f'{AvN_now:.2f}'],
+                'Last 24 hrs': [f'{NH4_24:.2f}', f'{NO2_24:.2f}', f'{NO3_24:.2f}', f'{AvN_24:.2f}'],
+            })
         return df.to_dict('records')
 
 
@@ -415,45 +429,55 @@ def update_biological_stats(refresh, data):
         raise PreventUpdate
     else:
         data = pd.read_json(data)
-        air_col = data['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)']  # m3/s
-        pilwater_col = data['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)']  # m3/s
-        NH4eff_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] / 1000  # mg/l to kg/m3
-        NO3eff_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N']  # kg/m3
+        if len(data) == 0:
+            raise PreventUpdate
+        else:
+            data.index = data.index.map(lambda x: x.tz_localize(None))
+            air_col = data['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)']  # m3/s
+            pilwater_col = data['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)']  # m3/s
+            NH4eff_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] / 1000  # mg/l to kg/m3
+            NO3eff_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N']  # kg/m3
 
-        NH4in_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N'] / 1000  # mg/l to kg/m3
-        NO3in_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-NO3_N']  # kg/m3
+            NH4in_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N'] / 1000  # mg/l to kg/m3
+            NO3in_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-NO3_N']  # kg/m3
 
-        totNH4in = calculateKPIs.integrate_flow(NH4in_col)
-        totNO3in = calculateKPIs.integrate_flow(NO3in_col)
-        totNO2eff = 0
-        totNH4eff = calculateKPIs.integrate_flow(NH4eff_col)
-        totNO3eff = calculateKPIs.integrate_flow(NO3eff_col)
-        tot_tin = (totNH4in + totNO3in) - (totNH4eff + totNO3eff + totNO2eff)
-        tot_air = calculateKPIs.integrate_flow(air_col)
-        tot_water = calculateKPIs.integrate_flow(pilwater_col)
-        # print(f'Total air,(m3) {tot_air}')
-        # print(f'Total water, (m3), {tot_water}')
-        # print(f'Total TIN removed, kg, {tot_tin / 1000}')
+            totNH4in = calculateKPIs.integrate_flow(NH4in_col, OFFSET)
+            totNO3in = calculateKPIs.integrate_flow(NO3in_col, OFFSET)
+            totNO2eff = 0
+            totNH4eff = calculateKPIs.integrate_flow(NH4eff_col, OFFSET)
+            totNO3eff = calculateKPIs.integrate_flow(NO3eff_col, OFFSET)
+            tot_tin = (totNH4in + totNO3in) - (totNH4eff + totNO3eff + totNO2eff)
+            tot_air = calculateKPIs.integrate_flow(air_col, OFFSET)
+            tot_water = calculateKPIs.integrate_flow(pilwater_col, OFFSET)
+            # print(f'Total air,(m3) {tot_air}')
+            # print(f'Total water, (m3), {tot_water}')
+            # print(f'Total TIN removed, kg, {tot_tin / 1000}')
+            if tot_air != 0:
+                tin_air = tot_tin / tot_air
+            else:
+                tin_air = 0
 
-        tin_air = tot_tin / tot_air
-        air_water = tot_air / tot_water
+            if tot_water != 0:
+                air_water = tot_air / tot_water
+            else:
+                air_water = 0
 
-        df = pd.DataFrame.from_dict({
-            'Parameter': [
-                'Volume of water treated (m3/d)',
-                'Volume of air (m3/d)',
-                'TIN removed (g/d)',
-                'Volume of air / Volume of treated water (m3/m3)',
-                'TIN removed/m3 air (g N/m3)',
-            ],
-            'Last 24 hrs': [
-                f'{tot_water:.1f}',
-                f'{tot_air:.1f}',
-                f'{tot_tin:.1f}',
-                f'{air_water:.1f}',
-                f'{tin_air:.3f}',
-            ],
-        })
+            df = pd.DataFrame.from_dict({
+                'Parameter': [
+                    'Volume of water treated (m3/d)',
+                    'Volume of air (m3/d)',
+                    'TIN removed (g/d)',
+                    'Volume of air / Volume of treated water (m3/m3)',
+                    'TIN removed/m3 air (g N/m3)',
+                ],
+                'Last 24 hrs': [
+                    f'{tot_water:.1f}',
+                    f'{tot_air:.1f}',
+                    f'{tot_tin:.1f}',
+                    f'{air_water:.1f}',
+                    f'{tin_air:.3f}',
+                ],
+            })
         return df.to_dict('records')
 
 

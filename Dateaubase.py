@@ -5,11 +5,18 @@ from collections import namedtuple
 from sqlalchemy import create_engine
 from urllib import parse
 import time
+import pyodbc
 
+drivers = [item for item in pyodbc.drivers()]
+driver = drivers[-1]
+# print("driver:{}".format(driver))
 # Setting constants
 database_name = 'dateaubase2020'
 local_server = r'GCI-PR-DATEAU02\DATEAUBASE'
-remote_server = r'132.203.190.77\DATEAUBASE'
+remote_server = r'132.203.190.77,1433\DATEAUBASE'
+# on mac -> Install ODBC Driver 17 for SQL Server
+'''on windows -> check your driver version in Start menu -> "Data Sources (ODBC) under "Drivers" tab and write the name of the SQL Server ODBC driver listed there
+'''
 
 with open('login.txt') as f:
     username = f.readline().strip()
@@ -17,16 +24,22 @@ with open('login.txt') as f:
 
 
 def connect_local(server, database):
-    engine = create_engine(f'mssql://{local_server}/{database}?driver=SQL+Server?trusted_connection=yes', connect_args={'connect_timeout': 2}, fast_executemany=True)
-    return engine
+    return create_engine(
+        f'mssql://{local_server}/{database}?driver={driver}?trusted_connection=yes',
+        connect_args={'connect_timeout': 2},
+        fast_executemany=True,
+    )
 
 
 def connect_remote(server, database, login_file):
     with open(login_file) as f:
         username = f.readline().strip()
         password = parse.quote_plus(f.readline().strip())
-    engine = create_engine(f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server', connect_args={'connect_timeout': 2}, fast_executemany=True)
-    return engine
+    return create_engine(
+        f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver={driver}',
+        connect_args={'connect_timeout': 2},
+        fast_executemany=True,
+    )
 
 def get_last(db_engine):
     query = 'SELECT Value_ID, Timestamp FROM dbo.value WHERE Value_ID = (SELECT MAX(Value_ID) FROM dbo.value)'
@@ -237,12 +250,14 @@ def extract_data(connexion, extract_list):
             )
             df = df.join(temp_df, how='outer')
             df = df[~df.index.duplicated(keep='first')]
+    df.index = df.index.map(lambda x: x.tz_localize(None))
+    print("TzInfo extract", df.index[0].tzinfo)
     return df
 
 
 def debug(engine):
     Start = date_to_epoch('2019-09-01 12:00:00')
-    End = date_to_epoch('2019-10-01 12:00:00')
+    End = date_to_epoch('2019-09-02 12:00:00')
     Location = 'Primary settling tank effluent'
     Project = 'pilEAUte'
 
@@ -261,24 +276,30 @@ def debug(engine):
         }
     print('ready to extract')
     df = extract_data(engine, extract_list)
-    print(len(df))
+    # print(df.index[0].tzinfo)
 
 # ________Main Script_________
 if __name__ == "__main__":
-    engine = connect_local(local_server, database_name)
-    if engine_runs(engine):
+    is_connected = False
+    #engine = connect_local(local_server, database_name)
+
+    #if engine_runs(engine):
+    if is_connected:
         print('local connection engine is running')
+        is_connected = True
     else:
         print('local connection engine failed to connect. Trying remote')
         engine = connect_remote(remote_server, database_name, 'login.txt')
         if engine_runs(engine):
             print('remote connection engine is running')
+            is_connected = True
         else:
             print('Remote connection engine failed to connect. Quitting.')
 
-    try:
-        debug(engine)
-    except Exception as e:
-        print(e)
-    finally:
-        engine.dispose()
+    if is_connected:
+        try:
+            debug(engine)
+        except Exception as e:
+            print(e)
+        finally:
+            engine.dispose()

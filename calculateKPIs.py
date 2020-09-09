@@ -23,8 +23,9 @@ def stats(df_column, rate=False):
     return value_min, value_max, value_avg, value_tot
 
 
-def integrate_flow(df_column):
-    threshold_time = pd.to_datetime(datetime.utcnow() - timedelta(hours=24)).tz_localize('UTC')
+def integrate_flow(df_column, weeks_offset):
+    # sourcery skip: inline-immediately-returned-variable
+    threshold_time = pd.to_datetime(datetime.now() - timedelta(weeks=weeks_offset) - timedelta(hours=24))
     df_column = df_column[df_column.index > threshold_time]
     df_column.fillna(method='ffill', inplace=True)
     df2 = pd.DataFrame.from_dict({'Time': df_column.index})
@@ -43,9 +44,13 @@ def integrate_flow(df_column):
 
 
 # Calculates common statistical properties
-def stats_24(df_column):
-    threshold_time = pd.to_datetime(datetime.utcnow() - timedelta(hours=24)).tz_localize('UTC')
+def stats_24(df_column, offset):
+    threshold_time = pd.to_datetime(datetime.now() - timedelta(weeks=offset) - timedelta(hours=24))
+    print("STATS24")
+    print(len(df_column))
     df_column = df_column[df_column.index > threshold_time]
+    print(threshold_time)
+    print(len(df_column))
     mean_24 = df_column.mean()
     val_now = df_column.dropna().iloc[-1]
     return val_now, mean_24
@@ -89,7 +94,8 @@ def peak_stats(df_column, threshold):
     # Create a new dataframe and return it
     peak_avg = pd.DataFrame(list(zip(time_avg, var_avg, fAE_val)), columns=['datetime', df_column.name + '-avg cycle', df_column.name+'-fAE'])
     peak_avg.set_index('datetime', inplace=True)
-    peak_avg.index = peak_avg.index.tz_localize("UTC")
+    # print("TzInfo", peak_avg.index[0].tzinfo)
+
 
     # Calculate the average for the entire dataframe
     if len(var_avg) != 0:
