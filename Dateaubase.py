@@ -3,15 +3,23 @@
 import pandas as pd
 import os
 from sqlalchemy import create_engine
+import pyodbc
+
 
 DATABASE = 'dateaubase2020'
-COMPUTER_NAME = os.environ['COMPUTERNAME']
+try:
+    COMPUTER_NAME = os.environ['COMPUTERNAME']
+except KeyError:
+    COMPUTER_NAME = 'not_windows'
+OS = os.name
 
 
 def create_connection():
-    if COMPUTER_NAME != 'GCI-PR-DATEAU01':
+    if COMPUTER_NAME != 'GCI-PR-DATEAU01' and OS != 'posix':
         engine = create_engine(f'mssql+pyodbc://jeandavidt:koopa6425@132.203.62.111:49172/{DATABASE}?driver=ODBC+Driver+13+for+SQL+Server?Integrated+Security=False', fast_executemany=True)
         print('engine created')
+    elif OS == 'posix':
+        engine = create_engine(f'mssql+pyodbc://jeandavidt:koopa6425@132.203.62.111,49172/{DATABASE}?driver=/usr/local/Cellar/msodbcsql/13.1.9.2/lib/libmsodbcsql.13.dylib', fast_executemany=True)
     else:
         engine = create_engine(f'mssql+pyodbc://@localhost/{DATABASE}?trusted_connection=yes&driver=ODBC+Driver+11+for+SQL+Server?Integrated+Security=False', fast_executemany=True)
     print(engine.url)
