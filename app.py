@@ -19,6 +19,7 @@ LOCAL_SERVER = r'GCI-PR-DATEAU02\DATEAUBASE'
 NEW_DATA_INTERVAL = 30  # in seconds
 DAYS_OF_DATA = 1
 MINUTES_OF_DATA = 300
+new_constant = 42
 STORE_MAX_LENGTH = DAYS_OF_DATA * 24 * 60 * 60  # worst-case of sensor that updates every second
 
 
