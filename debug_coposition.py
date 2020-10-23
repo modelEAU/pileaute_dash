@@ -1,86 +1,7 @@
-from datetime import datetime, timedelta
 
-import dash
-import dash_core_components as dcc
-import dash_html_components as html
-import dash_table
-from dash.dependencies import Input, Output, State
-from dash.exceptions import PreventUpdate
-
-import pandas as pd
-import plotly.io as pio
-
-import Dateaubase
-import PlottingTools
-import calculateKPIs
-
-pio.templates.default = "plotly_white"
-
-pd.options.display.float_format = '{:,.2f}'.format
-
-
-engine = Dateaubase.connect_remote(Dateaubase.remote_server, "dateaubase2020", "login.txt")
-
-if Dateaubase.engine_runs(engine):
-    print('connect successful')
-
-# USER DEFINED PARAMETERS
-NEW_DATA_INTERVAL = 1  # seconds
-DAYS_OF_DATA = 1  # days
-OFFSET = 1  # weeks
-
-# INITIALIZATION
-INTERVAL_LENGTH_SEC = DAYS_OF_DATA * 24 * 60 * 60
-STORE_MAX_LENGTH = INTERVAL_LENGTH_SEC  # worst-case of sensor that updates every second
-TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-
-
-# EXTRACT DESIRED DATA
-def AvN_shopping_list(beginning_string, ending_string):
-    Project = 'pilEAUte'
-    Location = [
-        'Pilote influent',
-        'Copilote influent',
-        'Primary settling tank effluent',
-        'Primary settling tank effluent',
-        'Primary settling tank effluent',
-        'Pilote effluent',
-        'Pilote effluent',
-        'Pilote effluent',
-        'Pilote reactor 5']
-    equip_list = [
-        'FIT-110',
-        'FIT-120',
-        'Ammo_005',
-        'Spectro_010',
-        'Spectro_010',
-        'Varion_002',
-        'Varion_002',
-        'Varion_002',
-        'FIT-430']
-    param_list = [
-        'Flowrate (Liquid)',
-        'Flowrate (Liquid)',
-        'NH4-N',
-        'COD',
-        'NO3-N',
-        'NH4-N',
-        'NO3-N',
-        'Temperature',
-        'Flowrate (Gas)']
-    shopping_list = {}
-    for i in range(len(param_list)):
-        shopping_list[i] = {
-            'Start': Dateaubase.date_to_epoch(beginning_string),
-            'End': Dateaubase.date_to_epoch(ending_string),
-            'Project': Project,
-            'Location': Location[i],
-            'Parameter': param_list[i],
-            'Equipment': equip_list[i]
-        }
-    return shopping_list
-
-
+    
+    
+#%%
 app = dash.Dash(__name__)
 
 app.layout = html.Div(
@@ -102,6 +23,23 @@ app.layout = html.Div(
                 # 'borderStyle': 'solid',
             }
         ),
+
+    html.Div([
+        html.Div([
+            html.Div([
+            html.H1('Influent Load [g/d]', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+            dcc.Graph(id='InfluentLoad')], className="four columns"),
+
+            html.Div([
+            html.H1('Influent concentration [mg/L]', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+            dcc.Graph(id='InfluentConcentration')], className="five columns"),
+
+            html.Div([
+            html.H1('Influent Parameter', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+            dcc.Graph(id='InfParmTable')], className="three columns"),
+                ])
+            ]),
+
         html.Br(),
         html.Div(
             children=[
@@ -109,7 +47,11 @@ app.layout = html.Div(
                     id='graph-div',
                     children=[
                         # html.H2(dcc.Markdown("Online data"), style={'textAlign': 'center'}),
-                        dcc.Graph(id='avn-graph')
+                        #dcc.Graph(id='avn-graph',className='three columns'),
+                        html.Div([ html.H1('oxygen level', style={'textAlign': 'center', 'color':'#7FDBFF'}), dcc.Graph(id='avn-graph')], className="six columns"),
+                        html.Div([
+                            html.H1('TSS concentration', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+                            dcc.Graph(id='Bio_perm')], className="six columns"),
                     ],
                     style={
                         'float': 'left',
@@ -129,12 +71,12 @@ app.layout = html.Div(
                             children=[
                                 html.Div(
                                     children=[
-                                        html.H4(
-                                            'Influent',
+                                        html.H2(
+                                            'HRT',
                                             style={'textAlign': 'left'}
                                         ),
                                         dash_table.DataTable(
-                                            id='influent-table',
+                                            id='SRT',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
                                             style_as_list_view=True,
                                             style_header={
@@ -166,8 +108,8 @@ app.layout = html.Div(
                                 html.Br(),
                                 html.Div(
                                     children=[
-                                        html.H4(
-                                            'Effluent',
+                                        html.H2(
+                                            'SRT',
                                             style={'textAlign': 'left'},
                                         ),
                                         dash_table.DataTable(
@@ -191,6 +133,8 @@ app.layout = html.Div(
                                                 }
                                             ],
                                         ),
+                                        html.Br(),
+                                        html.Div(children=[html.H2('Aeration state',style={'textAlign': 'center', 'color': '#7FDBFF'}),dcc.Graph(id='Aeration_state')],) 
                                     ],
                                     style={
                                         'display': 'inline-block',
@@ -203,51 +147,10 @@ app.layout = html.Div(
                             ],
                         ),
                         html.Br(),
-                        html.Div(
-                            id='floor-2',
-                            children=[
-                                html.Div(
-                                    children=[
-                                        html.H4(
-                                            'Cumulative Stats',
-                                            style={'textAlign': 'left'}
-                                        ),
-                                        dash_table.DataTable(
-                                            id='bioreactor-table',
-                                            columns=[{"name": i, "id": i} for i in ['Parameter', 'Last 24 hrs']],
-                                            style_as_list_view=True,
-                                            style_header={
-                                                'fontWeight': 'bold',
-                                                'backgroundColor': 'rgb(230, 230, 230)',
-                                            },
-                                            style_cell_conditional=[
-                                                {
-                                                    'if': {'column_id': c},
-                                                    'textAlign': 'left'
-                                                } for c in ['Parameter']
-                                            ],
-                                            style_data_conditional=[
-                                                {
-                                                    'if': {'row_index': 'odd'},
-                                                    'backgroundColor': 'rgb(248, 248, 248)'
-                                                }
-                                            ],
-                                        )
-                                    ],
-                                    style={
-                                        'display': 'inline-block',
-                                        'alignSelf': 'right',
-                                        'width': '96%',
-                                        'paddingLeft': '2%',
-                                        'paddingRight': '2%'
-                                    },
-                                ),
-                            ],
-                        ),
                     ],
                     style={
                         'float': 'right',
-                        'width': '25%',
+                        'width': '20%',
                         # 'borderStyle': "solid",
                         'display': 'inline-block',
                         'paddingLeft': '0%',
@@ -257,8 +160,196 @@ app.layout = html.Div(
             ],
             style={'textAlign': 'center', 'paddingLeft': '0%', 'paddingRight': '0%', 'width': '100%'}
         ),
-    ],
+
+     html.Div(children=[html.H1('Effluent',style={'textAlign': 'center', 'color': '#7FDBFF'}),
+        dcc.Graph(id='Effluent ')], 
+         className="seven columns"),
+])
+
+
+app.run_server(debug=False)
+
+
+#%%
+
+
+app.run_server(debug=False)
+#%%%
+
+        # html.Div(
+        #     children=[
+        #         html.Div(
+        #             id='graph-div',
+        #             children=[
+        #                 # html.H2(dcc.Markdown("Online data"), style={'textAlign': 'center'}),
+        #                 dcc.Graph(id='avn-graph')
+        #             ],
+        #             style={
+        #                 'float': 'left',
+        #                 'width': '70%',
+        #                 # 'borderStyle': 'solid',
+        #                 'display': 'inline-block',
+        #                 'paddingLeft': '2%',
+        #                 'paddingRight': '0%',
+        #             }
+        #         ),
+        #         html.Div(
+        #             id='table-div',
+        #             children=[
+        #                 # html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center'}),
+        #                 html.Div(
+        #                     id='floor-1',
+        #                     children=[
+        #                         html.Div(
+        #                             children=[
+        #                                 html.H4(
+        #                                     'Influent',
+        #                                     style={'textAlign': 'left'}
+        #                                 ),
+        #                                 dash_table.DataTable(
+        #                                     id='influent-table',
+        #                                     columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
+        #                                     style_as_list_view=True,
+        #                                     style_header={
+        #                                         'fontWeight': 'bold',
+        #                                         'backgroundColor': 'rgb(230, 230, 230)',
+        #                                     },
+        #                                     style_cell_conditional=[
+        #                                         {
+        #                                             'if': {'column_id': c},
+        #                                             'textAlign': 'left'
+        #                                         } for c in ['Parameter']
+        #                                     ],
+        #                                     style_data_conditional=[
+        #                                         {
+        #                                             'if': {'row_index': 'odd'},
+        #                                             'backgroundColor': 'rgb(248, 248, 248)'
+        #                                         }
+        #                                     ],
+        #                                 ),
+        #                             ],
+        #                             style={
+        #                                 'display': 'inline-block',
+        #                                 'alignSelf': 'left',
+        #                                 'width': '96%',
+        #                                 'paddingLeft': '2%',
+        #                                 'paddingRight': '2%'
+        #                             },
+        #                         ),
+        #                         html.Br(),
+        #                         html.Div(
+        #                             children=[
+        #                                 html.H4(
+        #                                     'Effluent',
+        #                                     style={'textAlign': 'left'},
+        #                                 ),
+        #                                 dash_table.DataTable(
+        #                                     id='effluent-table',
+        #                                     columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
+        #                                     style_as_list_view=True,
+        #                                     style_header={
+        #                                         'fontWeight': 'bold',
+        #                                         'backgroundColor': 'rgb(230, 230, 230)',
+        #                                     },
+        #                                     style_cell_conditional=[
+        #                                         {
+        #                                             'if': {'column_id': c},
+        #                                             'textAlign': 'left'
+        #                                         } for c in ['Parameter']
+        #                                     ],
+        #                                     style_data_conditional=[
+        #                                         {
+        #                                             'if': {'row_index': 'odd'},
+        #                                             'backgroundColor': 'rgb(248, 248, 248)'
+        #                                         }
+        #                                     ],
+        #                                 ),
+        #                             ],
+        #                             style={
+        #                                 'display': 'inline-block',
+        #                                 'alignSelf': 'left',
+        #                                 'width': '96%',
+        #                                 'paddingLeft': '2%',
+        #                                 'paddingRight': '2%',
+        #                             },
+        #                         ),
+        #                     ],
+        #                 ),
+        #                 html.Br(),
+        #                 html.Div(
+        #                     id='floor-2',
+        #                     children=[
+        #                         html.Div(
+        #                             children=[
+        #                                 html.H4(
+        #                                     'Cumulative Stats',
+        #                                     style={'textAlign': 'left'}
+        #                                 ),
+        #                                 dash_table.DataTable(
+        #                                     id='bioreactor-table',
+        #                                     columns=[{"name": i, "id": i} for i in ['Parameter', 'Last 24 hrs']],
+        #                                     style_as_list_view=True,
+        #                                     style_header={
+        #                                         'fontWeight': 'bold',
+        #                                         'backgroundColor': 'rgb(230, 230, 230)',
+        #                                     },
+        #                                     style_cell_conditional=[
+        #                                         {
+        #                                             'if': {'column_id': c},
+        #                                             'textAlign': 'left'
+        #                                         } for c in ['Parameter']
+        #                                     ],
+        #                                     style_data_conditional=[
+        #                                         {
+        #                                             'if': {'row_index': 'odd'},
+        #                                             'backgroundColor': 'rgb(248, 248, 248)'
+        #                                         }
+        #                                     ],
+        #                                 )
+        #                             ],
+        #                             style={
+        #                                 'display': 'inline-block',
+        #                                 'alignSelf': 'right',
+        #                                 'width': '96%',
+        #                                 'paddingLeft': '2%',
+        #                                 'paddingRight': '2%'
+        #                             },
+        #                         ),
+        #                     ],
+        #                 ),
+        #             ],
+        #             style={
+        #                 'float': 'right',
+        #                 'width': '25%',
+        #                 # 'borderStyle': "solid",
+        #                 'display': 'inline-block',
+        #                 'paddingLeft': '0%',
+        #                 'paddingRight': '0%',
+        #             }
+        #         ),
+        #     ],
+        #     style={'textAlign': 'center', 'paddingLeft': '0%', 'paddingRight': '0%', 'width': '100%'}
+        # ),
+    html.Div(children=[
+    html.H1('Effluent',style={'textAlign': 'center', 'color': '#7FDBFF'}),
+      dcc.Graph(id='whichid',
+             figure={
+                 'data':[
+                     {'x':[1,2,3,4,5], 'y':[2,6,4,1,0.8]}
+                        ]}
+             )],
+            style={'display': 'inline-block',
+                                        'alignSelf': 'left',
+                                        'width': '96%',
+                                        'paddingLeft': '2%',
+                                        'paddingRight': '2%'
+                                    } ),
+    ]
 )
+
+
+
+
 
 
 @app.callback(
@@ -317,39 +408,7 @@ def store_data(n, data):
     return json_data
 
 
-#%%
 
-@app.callback(Output('influent-table', 'data'),
-    [Input('refresh-interval', 'n_intervals')],
-    [State('avn-db-store', 'data')])
-def update_Influent_stats(refresh, data):
-    import plotly.graph_objects as go
-    if not data:
-        raise PreventUpdate
-        print('nodata')
-    else:
-        print('ok')
-        df = pd.read_json(data)
-        if len(df) == 0:
-            fig=go.Figure(
-                data=[go.Table(header=dict(values=['Param','Value']),
-                                cells=dict(values=[['Flow','Tempature','pH'],[0,0,3]])
-            )])
-            
-        else:  # effluent stats
-            Flow = df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)']
-            print(Flow)
-            #Temp = data
-            # fig=go.Figure(
-            #     data=[go.Table(header=dict(values=['Param','Value']),
-            #                     cells=dict(values=[['Flow','Tempature','pH'],Flow.mean()])
-            # )])
-            fig=go.Figure()
-            fig.add_trace(go.Scatter(x=np.linspace(0,1,5), y=Flow[0:5]))
-
-    return fig
-
-#%%
 
 @app.callback(
     Output('avn-graph', 'figure'),
@@ -384,6 +443,26 @@ def avn_graph(data):
             print('finished creating the figure')
             # print('AvN fig has been created')
         return fig
+
+
+@app.callback(
+    Output('InfluentLoad', 'figure'),
+    [Input('avn-db-store', 'data')])
+
+
+
+def InfluentLoad(data):
+    if not data:
+        raise PreventUpdate
+    else:
+        df = pd.read_json(data)
+        if len(df) == 0:
+            raise PreventUpdate
+        else:
+            fig = PlottingTools.violinplotInfluent(df)
+            # print('AvN fig has been created')
+        return fig
+
 
 
 @app.callback(
@@ -514,8 +593,5 @@ def update_biological_stats(refresh, data):
             })
         return df.to_dict('records')
 
+app.run_server(debug=False)
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
-else:
-    server = app.server

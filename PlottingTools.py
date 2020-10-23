@@ -371,9 +371,110 @@ def threefigs(df):
     fig.update_traces(connectgaps=True)
     return fig
 
+
+
+
+def violinplotInfluent(df):
+    import math
+    threshold_time = pd.to_datetime(datetime.now() - timedelta(weeks=offset) - timedelta(hours=24*7))
+    df = df[df.index > threshold_time]
+    df.sort_index(inplace=True)
+    df.fillna(inplace=True, method='ffill')
+    df = df.groupby(pd.Grouper(freq='300S')).first()
+    #Spectro unit is 1000 times
+    SpectroColum=[df.columns[df.columns.str.contains('Spectro')]]
+    df[SpectroColum[0]]=df[SpectroColum[0]]*1000
+    InfluentVariabletotal = [col for col in df.columns if 'pilEAUte-Primary settling tank effluent' in col]
+    InfluentVariabletotal = pd.DataFrame(InfluentVariabletotal) 
+    
+    InfluentVariable=InfluentVariabletotal[ ~ InfluentVariabletotal[0].str.contains('Temperature')]
+    InfluentVariable=InfluentVariable[ ~ InfluentVariable[0].str.contains('pH')]
+    InfluentVariable=InfluentVariable[ ~ InfluentVariable[0].str.contains('NO3')]
+
+    InfluentVariable=InfluentVariable[0].tolist()
+    Flow=df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)']*1000
+    closnumber=math.ceil(len(InfluentVariable)/2)
+    fig = make_subplots(rows=2, cols=closnumber)
+    # Top
+    for i, element in enumerate(InfluentVariable):
+        print(i, str(element))
+        Load=df[str(element)].mul(Flow)*24 # (mg/l*m3/h->g/d)
+        plotname=go.Violin(y=Load,box_visible=True, meanline_visible=True, name=element[40:])
+        if i + 1 <= closnumber:
+            fig.add_trace(plotname,row=1,col=i+1)
+        else:
+            fig.add_trace(plotname,row=2,col=i-closnumber+1)
+    # fig.update_layout(legend=dict(
+    # orientation="h",
+    # yanchor="bottom",
+    # y=1.02,
+    # xanchor="right",
+    # x=1))
+    return fig
+
+
+
+
+def InfluentConcen(df,offset):
+    threshold_time = pd.to_datetime(datetime.now() - timedelta(weeks=offset) - timedelta(hours=24*7))
+    df = df[df.index > threshold_time]
+    time = df.index
+    '''df.sort_index(inplace=True)
+    df.fillna(inplace=True, method='ffill')
+    df = df.groupby(pd.Grouper(freq='300S')).first()'''
+    fig = make_subplots(
+        rows=2, cols=1,
+        specs=[[{'secondary_y': True}], [{'secondary_y': True}]],
+        shared_xaxes=True,)
+
+    # Top
+    # NH4
+    trace_nh4 = go.Scattergl(
+        x=time,
+        y=df['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N'],
+        name='NH4',
+        mode='lines',
+        line=dict(
+            dash='solid',
+            color='blue'))
+
+    trace_K = go.Scattergl(
+    x=time,
+    y=df['pilEAUte-Primary settling tank effluent-Ammo_005-K'],
+    name='K',
+    mode='lines',
+    line=dict(
+        dash='solid',
+        color='dark green'
+    ),
+)
+    fig.add_trace(trace_nh4, row=1, col=1, secondary_y=False)
+    fig.add_trace(trace_K, row=1, col=1, secondary_y=True)
+
+
+
+    trace_COD = go.Scattergl(
+    x=time,
+    y=df['pilEAUte-Primary settling tank effluent-Spectro_010-COD'] * 1000,
+    name='COD',
+    mode='lines',
+    line=dict(
+        dash='solid',
+        color='lightcoral'
+    ),
+
+    fig.add_trace(trace_nh4, trace_K, row=1, col=1, secondary_y=True)
+
+
+
+
+
+
+
 if __name__ == '__main__':
     start = time.time()
     fig = debug()
     fig.show()
     end = time.time()
     print(f'This took {end-start} seconds')
+
