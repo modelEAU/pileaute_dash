@@ -25,9 +25,9 @@ if Dateaubase.engine_runs(engine):
     print('connect successful')
 
 # USER DEFINED PARAMETERS
-NEW_DATA_INTERVAL = 1  # seconds
+NEW_DATA_INTERVAL = 30  # seconds
 DAYS_OF_DATA = 1  # days
-OFFSET = 1  # weeks
+OFFSET = 34  # weeks
 
 # INITIALIZATION
 INTERVAL_LENGTH_SEC = DAYS_OF_DATA * 24 * 60 * 60
@@ -317,40 +317,6 @@ def store_data(n, data):
     return json_data
 
 
-#%%
-
-@app.callback(Output('influent-table', 'data'),
-    [Input('refresh-interval', 'n_intervals')],
-    [State('avn-db-store', 'data')])
-def update_Influent_stats(refresh, data):
-    import plotly.graph_objects as go
-    if not data:
-        raise PreventUpdate
-        print('nodata')
-    else:
-        print('ok')
-        df = pd.read_json(data)
-        if len(df) == 0:
-            fig=go.Figure(
-                data=[go.Table(header=dict(values=['Param','Value']),
-                                cells=dict(values=[['Flow','Tempature','pH'],[0,0,3]])
-            )])
-            
-        else:  # effluent stats
-            Flow = df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)']
-            print(Flow)
-            #Temp = data
-            # fig=go.Figure(
-            #     data=[go.Table(header=dict(values=['Param','Value']),
-            #                     cells=dict(values=[['Flow','Tempature','pH'],Flow.mean()])
-            # )])
-            fig=go.Figure()
-            fig.add_trace(go.Scatter(x=np.linspace(0,1,5), y=Flow[0:5]))
-
-    return fig
-
-#%%
-
 @app.callback(
     Output('avn-graph', 'figure'),
     [Input('avn-db-store', 'data')]
@@ -513,7 +479,6 @@ def update_biological_stats(refresh, data):
                 ],
             })
         return df.to_dict('records')
-
 
 if __name__ == '__main__':
     app.run_server(debug=True)

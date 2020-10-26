@@ -76,9 +76,9 @@ import Dateaubase
 import PlottingTools
 import calculateKPIs
 # USER DEFINED PARAMETERS
-NEW_DATA_INTERVAL = 600  # seconds
+NEW_DATA_INTERVAL = 30  # seconds
 DAYS_OF_DATA = 1  # days
-OFFSET = 40  # weeks
+OFFSET = 34  # weeks
 
 # INITIALIZATION
 INTERVAL_LENGTH_SEC = DAYS_OF_DATA * 24 * 60 * 60
@@ -100,10 +100,13 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Primary settling tank effluent',
         'Primary settling tank effluent',
         'Primary settling tank effluent',
+        'Primary settling tank effluent',
         'Pilote effluent',
         'Pilote effluent',
         'Pilote effluent',
-        'Pilote reactor 5']
+        'Pilote reactor 5',
+        'copilote reactor 5',
+        'Pilote reactor 4', 'copilote reactor 5',]
     equip_list = [
         'FIT-100',
         'FIT-110',
@@ -115,10 +118,13 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Spectro_010',
         'Spectro_010',
         'Spectro_010',
+        'Spectro_010',
         'Varion_002',
         'Varion_002',
         'Varion_002',
-        'FIT-430']
+        'FIT-430',
+        'FIT-460',
+        'AIT-241', 'AIT-341']
     param_list = [
         'Flowrate (Liquid)',
         'Flowrate (Liquid)',
@@ -127,13 +133,16 @@ def AvN_shopping_list(beginning_string, ending_string):
         'K',
         'Temperature',
         'pH',
+        'TSS',
         'COD',
         'CODf',
         'NO3-N',
         'NH4-N',
         'NO3-N',
         'Temperature',
-        'Flowrate (Gas)']
+        'Flowrate (Gas)',
+        'Flowrate (Gas)',
+        'DO','DO']
     shopping_list = {}
     for i in range(len(param_list)):
         shopping_list[i] = {
@@ -174,15 +183,15 @@ app.layout = html.Div(
     html.Div([
         html.Div([
             html.Div([
-            html.H1('Influent Load [g/d]', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+            html.H4('Influent Load [g/d]', style={'textAlign': 'center', 'color':'#7FDBFF'}),
             dcc.Graph(id='InfluentLoad')], className="four columns"),
 
             html.Div([
-            html.H1('Influent concentration [mg/L]', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+            html.H4('Influent concentration [mg/L]', style={'textAlign': 'center', 'color':'#7FDBFF'}),
             dcc.Graph(id='InfluentConcentration')], className="five columns"),
 
             html.Div([
-            html.H1('Influent Parameter', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+            html.H4('Influent Parameter', style={'textAlign': 'center', 'color':'#7FDBFF'}),
             dcc.Graph(id='InfParmTable')], className="three columns"),
                 ])
             ]),
@@ -195,10 +204,11 @@ app.layout = html.Div(
                     children=[
                         # html.H2(dcc.Markdown("Online data"), style={'textAlign': 'center'}),
                         #dcc.Graph(id='avn-graph',className='three columns'),
-                        html.Div([ html.H1('oxygen level', style={'textAlign': 'center', 'color':'#7FDBFF'}), dcc.Graph(id='avn-graph')], className="six columns"),
                         html.Div([
-                            html.H1('TSS concentration', style={'textAlign': 'center', 'color':'#7FDBFF'}),
-                            dcc.Graph(id='Bio_perm')], className="six columns"),
+                            html.H4('oxygen level', style={'textAlign': 'center', 'color':'#7FDBFF'}), dcc.Graph(id='oxylevel')], className="six columns"),
+                        html.Div([
+                            html.H4('TSS concentration', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+                            dcc.Graph(id='TSSconcen')], className="six columns"),
                     ],
                     style={
                         'float': 'left',
@@ -308,7 +318,7 @@ app.layout = html.Div(
             style={'textAlign': 'center', 'paddingLeft': '0%', 'paddingRight': '0%', 'width': '100%'}
         ),
 
-     html.Div(children=[html.H1('Effluent',style={'textAlign': 'center', 'color': '#7FDBFF'}),
+     html.Div(children=[html.H4('Effluent',style={'textAlign': 'center', 'color': '#7FDBFF'}),
         dcc.Graph(id='Effluent ')], 
          className="seven columns"),
 ])
@@ -346,10 +356,12 @@ def store_data(n, data):
         # print(f'{last_string} - last update')
         if last_time > start_time:
             start_string = last_string
+
     print(f'{len(stored_df)} points are in the store')
     print(f'Data from {start_string} to {end_string} will be extracted.')
     extract_list = AvN_shopping_list(start_string, end_string)
     print('trying to get new data')
+
     new_df = Dateaubase.extract_data(engine, extract_list)
  # add rain value to dataextracted.
     Rainquery = 'SELECT [Timestamp],  [Value] FROM [dateaubase2020].[dbo].[value] WHERE Metadata_ID = 101 AND Timestamp> ='+str(Dateaubase.date_to_epoch(start_string))+ 'AND Timestamp <= ' +str(Dateaubase.date_to_epoch(end_string))  
@@ -360,7 +372,6 @@ def store_data(n, data):
     Rain=Rain.set_index('datetime')
     new_df=pd.concat([new_df, Rain], axis=1)
 
-df = pd.read_sql(query, engine)
     print("new_df_TzInfo", new_df.index[0].tzinfo)
     print('data extracted')
 
@@ -386,11 +397,11 @@ df = pd.read_sql(query, engine)
 
 
 
-# @app.callback(
-#     Output('avn-graph', 'figure'),
-#     [Input('avn-db-store', 'data')]
-# )
-# def avn_graph(data):
+@app.callback(
+    Output('avn-graph', 'figure'),
+    [Input('avn-db-store', 'data')]
+)
+def avn_graph(data):
     if not data:
         raise PreventUpdate
     else:
@@ -566,6 +577,7 @@ def update_Influent_stats(refresh, data):
             raise PreventUpdate
         else:  # effluent stats
             data.index = data.index.map(lambda x: x.tz_localize(None))
+            data.fillna(inplace=True, method='ffill')
             Flow = data['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)']
             Temp = data['pilEAUte-Primary settling tank effluent-Ammo_005-Temperature']
             pH=data['pilEAUte-Primary settling tank effluent-Ammo_005-pH']
@@ -596,8 +608,61 @@ def update_Influent_stats(refresh, data):
             fig=PlottingTools.violinplotInfluent(data)
 
     return fig
+
+
+
+@app.callback(
+    Output('InfluentConcentration', 'figure'),
+    [Input('avn-db-store', 'data')],
+    [State('avn-db-store', 'data')])
+def update_Influent_stats(refresh, data):
+    import plotly.graph_objects as go
+    if not data:
+        raise PreventUpdate
+    else:
+        data = pd.read_json(data)
+        if len(data) == 0:
+            raise PreventUpdate
+        else:  # effluent stats
+            fig=PlottingTools.InfluentConcen(data, OFFSET)
+
+    return fig
 #%%
 app.run_server(debug=False)
+
+
+
+
+
+
+
+
+
+
+
+@app.callback(
+    Output('InfluentConcentration', 'figure'),
+    [Input('avn-db-store', 'data')],
+    [State('avn-db-store', 'data')])
+def update_oxylevel(refresh, data):
+    import plotly.graph_objects as go
+    if not data:
+        raise PreventUpdate
+    else:
+        data = pd.read_json(data)
+        if len(data) == 0:
+            raise PreventUpdate
+        else:  # effluent stats
+            fig=PlottingTools.oxylevelplot(data, OFFSET)
+
+    return fig
+
+
+
+
+
+
+
 
 # #%%
 
