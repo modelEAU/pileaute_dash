@@ -480,7 +480,6 @@ def update_biological_stats(refresh, data):
             })
         return df.to_dict('records')
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
-else:
-    server = app.server
+app.run_server(debug=False)
+
+

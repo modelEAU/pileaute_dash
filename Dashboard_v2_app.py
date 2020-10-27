@@ -76,7 +76,8 @@ import Dateaubase
 import PlottingTools
 import calculateKPIs
 # USER DEFINED PARAMETERS
-NEW_DATA_INTERVAL = 30  # seconds
+# USER DEFINED PARAMETERS
+NEW_DATA_INTERVAL = 120  # seconds
 DAYS_OF_DATA = 1  # days
 OFFSET = 34  # weeks
 
@@ -84,6 +85,7 @@ OFFSET = 34  # weeks
 INTERVAL_LENGTH_SEC = DAYS_OF_DATA * 24 * 60 * 60
 STORE_MAX_LENGTH = INTERVAL_LENGTH_SEC  # worst-case of sensor that updates every second
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 
 
 # EXTRACT DESIRED DATA
@@ -96,35 +98,39 @@ def AvN_shopping_list(beginning_string, ending_string):
         'Primary settling tank effluent',
         'Primary settling tank effluent',
         'Primary settling tank effluent',
+        'Primary settling tank effluent', # ammo
         'Primary settling tank effluent',
         'Primary settling tank effluent',
         'Primary settling tank effluent',
-        'Primary settling tank effluent',
-        'Primary settling tank effluent',
-        'Pilote effluent',
-        'Pilote effluent',
-        'Pilote effluent',
+        'Primary settling tank effluent',# spectro
+        'Pilote effluent','Pilote effluent',
+        'copilote effluent','copilote effluent', # Varion
         'Pilote reactor 5',
         'copilote reactor 5',
-        'Pilote reactor 4', 'copilote reactor 5',]
+        'Pilote reactor 4', 'copilote reactor 4',
+        'Pilote reactor 5', 'copilote reactor 5',
+        'Pilote sludge recycle','Copilote sludge recycle',
+        'Pilote effluent', 'copilote effluent']
     equip_list = [
         'FIT-100',
         'FIT-110',
-        'FIT-120',
+        'FIT-120', # flow
         'Ammo_005',
         'Ammo_005',
         'Ammo_005',
-        'Ammo_005',
+        'Ammo_005',# ammo
         'Spectro_010',
         'Spectro_010',
         'Spectro_010',
-        'Spectro_010',
-        'Varion_002',
-        'Varion_002',
-        'Varion_002',
-        'FIT-430',
+        'Spectro_010', # spectro
+        'Varion_002','Varion_002',
+        'Varion_001','Varion_001', # Varion
+        'FIT-430', 
         'FIT-460',
-        'AIT-241', 'AIT-341']
+        'AIT-241', 'AIT-341',
+        'AIT-250', 'AIT-350',
+        'AIT-260','AIT-360',
+        'TurbR200','TurbR300' ]
     param_list = [
         'Flowrate (Liquid)',
         'Flowrate (Liquid)',
@@ -137,12 +143,14 @@ def AvN_shopping_list(beginning_string, ending_string):
         'COD',
         'CODf',
         'NO3-N',
-        'NH4-N',
-        'NO3-N',
-        'Temperature',
+        'NH4-N','NO3-N',
+        'NH4-N','NO3-N',
         'Flowrate (Gas)',
         'Flowrate (Gas)',
-        'DO','DO']
+        'DO','DO',
+        'TSS','TSS',
+        'TSS','TSS',
+        'Turbidity','Turbidity' ]
     shopping_list = {}
     for i in range(len(param_list)):
         shopping_list[i] = {
@@ -167,7 +175,7 @@ app.layout = html.Div(
         html.Div(
             children=[
                 html.Img(
-                    src='assets/flowsheetPilEAUte_avn.png',
+                    src='assets/flowsheetPilEAUte1.png',
                     style={'align': 'middle'}
                 ),
             ],
@@ -183,15 +191,15 @@ app.layout = html.Div(
     html.Div([
         html.Div([
             html.Div([
-            html.H4('Influent Load [g/d]', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+            html.H2('Influent load [g/d]', style={'textAlign': 'center', 'color':'royalblue'}),
             dcc.Graph(id='InfluentLoad')], className="four columns"),
 
             html.Div([
-            html.H4('Influent concentration [mg/L]', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+            html.H2('Influent concentration [mg/L]', style={'textAlign': 'center', 'color':'royalblue'}),
             dcc.Graph(id='InfluentConcentration')], className="five columns"),
 
             html.Div([
-            html.H4('Influent Parameter', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+            html.H2(dcc.Markdown('Influent Parameter'), style={'textAlign': 'center', 'color':'royalblue'}),
             dcc.Graph(id='InfParmTable')], className="three columns"),
                 ])
             ]),
@@ -205,9 +213,9 @@ app.layout = html.Div(
                         # html.H2(dcc.Markdown("Online data"), style={'textAlign': 'center'}),
                         #dcc.Graph(id='avn-graph',className='three columns'),
                         html.Div([
-                            html.H4('oxygen level', style={'textAlign': 'center', 'color':'#7FDBFF'}), dcc.Graph(id='oxylevel')], className="six columns"),
+                            html.H2(dcc.Markdown('oxygen level'), style={'textAlign': 'center', 'color':'royalblue'}), dcc.Graph(id='oxylevel')], className="six columns"),
                         html.Div([
-                            html.H4('TSS concentration', style={'textAlign': 'center', 'color':'#7FDBFF'}),
+                            html.H2(dcc.Markdown('TSS concentration'), style={'textAlign': 'center', 'color':'royalblue'}),
                             dcc.Graph(id='TSSconcen')], className="six columns"),
                     ],
                     style={
@@ -222,24 +230,62 @@ app.layout = html.Div(
                 html.Div(
                     id='table-div',
                     children=[
-                        # html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center'}),
+                    #html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center', 'color':'royalblue'}),
                         html.Div(
                             id='floor-1',
                             children=[
                                 html.Div(
                                     children=[
                                         html.H2(
-                                            'HRT',
+                                            dcc.Markdown('AvN_inffluent'),
                                             style={'textAlign': 'left'}
                                         ),
                                         dash_table.DataTable(
-                                            id='SRT',
+                                            id='influent-table',# purge 1.5m3/h
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
                                             style_as_list_view=True,
                                             style_header={
                                                 'fontWeight': 'bold',
                                                 'backgroundColor': 'rgb(230, 230, 230)',
                                             },
+                                            style_cell_conditional=[
+                                                {
+                                                    'if': {'column_id': c},
+                                                    'textAlign': 'left'
+                                                } for c in ['Parameter']
+                                            ],
+                                            style_cell={'fontSize':30},
+                                            style_data_conditional=[
+                                                {
+                                                    'if': {'row_index': 'odd'},
+                                                    'backgroundColor': 'rgb(248, 248, 248)'
+                                                }
+                                            ],
+                                        ),
+                                    ],
+                                    style={
+                                        'display': 'inline-block',
+                                        'alignSelf': 'left',
+                                        'width': '96%',
+                                        'paddingLeft': '2%',
+                                        'paddingRight': '2%'
+                                    },
+                                ),
+                                html.Div(
+                                    children=[
+                                        html.H2(
+                                            dcc.Markdown('AvN_effluent_pilot'),
+                                            style={'textAlign': 'left'},
+                                        ),
+                                        dash_table.DataTable(
+                                            id='effluent-table-pil',# purge 1.5m3/h
+                                            columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
+                                            style_as_list_view=True,
+                                            style_header={
+                                                'fontWeight': 'bold',
+                                                'backgroundColor': 'rgb(230, 230, 230)',
+                                            },
+                                            style_cell={'fontSize':30},
                                             style_cell_conditional=[
                                                 {
                                                     'if': {'column_id': c},
@@ -266,17 +312,18 @@ app.layout = html.Div(
                                 html.Div(
                                     children=[
                                         html.H2(
-                                            'SRT',
+                                            dcc.Markdown('AvN_effluent_copilot'),
                                             style={'textAlign': 'left'},
                                         ),
                                         dash_table.DataTable(
-                                            id='effluent-table',
+                                            id='effluent-table-cop',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
                                             style_as_list_view=True,
                                             style_header={
                                                 'fontWeight': 'bold',
                                                 'backgroundColor': 'rgb(230, 230, 230)',
                                             },
+                                            style_cell={'fontSize':30},
                                             style_cell_conditional=[
                                                 {
                                                     'if': {'column_id': c},
@@ -291,7 +338,7 @@ app.layout = html.Div(
                                             ],
                                         ),
                                         html.Br(),
-                                        html.Div(children=[html.H2('Aeration state',style={'textAlign': 'center', 'color': '#7FDBFF'}),dcc.Graph(id='Aeration_state')],) 
+                                        html.Div(children=[dcc.Graph(id='HRT_SRT')],) 
                                     ],
                                     style={
                                         'display': 'inline-block',
@@ -318,16 +365,14 @@ app.layout = html.Div(
             style={'textAlign': 'center', 'paddingLeft': '0%', 'paddingRight': '0%', 'width': '100%'}
         ),
 
-     html.Div(children=[html.H4('Effluent',style={'textAlign': 'center', 'color': '#7FDBFF'}),
-        dcc.Graph(id='Effluent ')], 
-         className="seven columns"),
+     html.Div(children=[html.H2(dcc.Markdown('Effluent'),style={'textAlign': 'center', 'color': 'royalblue'}),
+        dcc.Graph(id='Effluent_concen')], 
+         className="eight columns"),
 ])
 
 
 
 #%%
-
-
 
 @app.callback(
     Output('avn-db-store', 'data'),
@@ -396,7 +441,6 @@ def store_data(n, data):
     return json_data
 
 
-
 @app.callback(
     Output('avn-graph', 'figure'),
     [Input('avn-db-store', 'data')]
@@ -463,7 +507,7 @@ def update_influent_stats(refresh, data):
 
 
 @app.callback(
-    Output('effluent-table', 'data'),
+    Output('effluent-table-pil', 'data'),
     [Input('refresh-interval', 'n_intervals')],
     [State('avn-db-store', 'data')])
 def update_effluent_stats(refresh, data):
@@ -499,6 +543,43 @@ def update_effluent_stats(refresh, data):
             })
         return df.to_dict('records')
 
+
+@app.callback(
+    Output('effluent-table-cop', 'data'),
+    [Input('refresh-interval', 'n_intervals')],
+    [State('avn-db-store', 'data')])
+def update_effluent_statscop(refresh, data):
+    if not data:
+        raise PreventUpdate
+    else:
+        data = pd.read_json(data)
+        if len(data) == 0:
+            raise PreventUpdate
+        else:  # effluent stats
+            data.index = data.index.map(lambda x: x.tz_localize(None))
+            NH4_col = data['pilEAUte-copilote effluent-Varion_001-NH4_N'] * 1000
+            NO3_col = data['pilEAUte-copilote effluent-Varion_001-NO3_N'] * 1000
+            NH4in_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
+            NO3in_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-NO3_N']
+            NH4_now, NH4_24 = calculateKPIs.stats_24(NH4_col, OFFSET)
+
+            NO3_now, NO3_24 = calculateKPIs.stats_24(NO3_col, OFFSET)
+
+            NO2_now, NO2_24 = 0, 0
+
+            AvN_now = NH4_now - (NO3_now + NO2_now)
+            AvN_24 = NH4_24 - (NO3_24 + NO2_24)
+
+            # influent values
+            NH4in_now, NH4in_24 = calculateKPIs.stats_24(NH4in_col, OFFSET)
+            NO3in_now, NO3in_24 = calculateKPIs.stats_24(NO3in_col, OFFSET)
+
+            df = pd.DataFrame.from_dict({
+                'Parameter': ['NH4 (mg/l)', 'NO2 (mg/l)', 'NO3 (mg/l)', 'AvN difference (mg/l)'],
+                'Now': [f'{NH4_now:.2f}', f'{NO2_now:.2f}', f'{NO3_now:.2f}', f'{AvN_now:.2f}'],
+                'Last 24 hrs': [f'{NH4_24:.2f}', f'{NO2_24:.2f}', f'{NO3_24:.2f}', f'{AvN_24:.2f}'],
+            })
+        return df.to_dict('records')
 
 @app.callback(
     Output('bioreactor-table', 'data'),
@@ -582,12 +663,13 @@ def update_Influent_stats(refresh, data):
             Temp = data['pilEAUte-Primary settling tank effluent-Ammo_005-Temperature']
             pH=data['pilEAUte-Primary settling tank effluent-Ammo_005-pH']
             fig=go.Figure(
-                data=[go.Table(header=dict(values=['Param','Value_now','Average value']),
-                                cells=dict(values=[['InFlow P-100 [m3/h]','Tempature[C]','pH'],
+                data=[go.Table(header=dict(values=['Param','Value_now','Average'], font=dict(size=24)),
+                                cells=dict(values=[['InFlow [m3/h]','Tempature  [C]','pH'],
                                 [round(Flow[-1],2),round(Temp[-1],2),round(pH[-1],2)],
                                 [round(Flow.mean(),2),round(Temp.mean(),2),round(pH.mean(),2)],
-                                ])
+                                ], font=dict(size=20),  height=40)
             )])
+            fig.update_layout(width=800, height=500)
 
     return fig
 
@@ -596,7 +678,7 @@ def update_Influent_stats(refresh, data):
     Output('InfluentLoad', 'figure'),
     [Input('avn-db-store', 'data')],
     [State('avn-db-store', 'data')])
-def update_Influent_stats(refresh, data):
+def update_Influentload_stats(refresh, data):
     import plotly.graph_objects as go
     if not data:
         raise PreventUpdate
@@ -605,17 +687,16 @@ def update_Influent_stats(refresh, data):
         if len(data) == 0:
             raise PreventUpdate
         else:  # effluent stats
-            fig=PlottingTools.violinplotInfluent(data)
-
+            fig=PlottingTools.violinplotInfluent(data, OFFSET)
+            print('influent load done')
     return fig
-
 
 
 @app.callback(
     Output('InfluentConcentration', 'figure'),
     [Input('avn-db-store', 'data')],
     [State('avn-db-store', 'data')])
-def update_Influent_stats(refresh, data):
+def update_Influentconcen_stats(refresh, data):
     import plotly.graph_objects as go
     if not data:
         raise PreventUpdate
@@ -627,21 +708,11 @@ def update_Influent_stats(refresh, data):
             fig=PlottingTools.InfluentConcen(data, OFFSET)
 
     return fig
-#%%
-app.run_server(debug=False)
-
-
-
-
-
-
-
-
 
 
 
 @app.callback(
-    Output('InfluentConcentration', 'figure'),
+    Output('oxylevel', 'figure'),
     [Input('avn-db-store', 'data')],
     [State('avn-db-store', 'data')])
 def update_oxylevel(refresh, data):
@@ -654,8 +725,73 @@ def update_oxylevel(refresh, data):
             raise PreventUpdate
         else:  # effluent stats
             fig=PlottingTools.oxylevelplot(data, OFFSET)
+    return fig
+
+
+
+@app.callback(
+    Output('TSSconcen', 'figure'),
+    [Input('avn-db-store', 'data')],
+    [State('avn-db-store', 'data')])
+def update_TSSconcen(refresh, data):
+    import plotly.graph_objects as go
+    if not data:
+        raise PreventUpdate
+    else:
+        data = pd.read_json(data)
+        if len(data) == 0:
+            raise PreventUpdate
+        else:  # effluent stats
+            fig=PlottingTools.TSSconcenplot(data, OFFSET)
 
     return fig
+
+
+@app.callback(
+    Output('Effluent_concen', 'figure'),
+    [Input('avn-db-store', 'data')],
+    [State('avn-db-store', 'data')])
+def update_Effluent_concentrationplot(refresh, data):
+    import plotly.graph_objects as go
+    if not data:
+        raise PreventUpdate
+    else:
+        data = pd.read_json(data)
+        if len(data) == 0:
+            raise PreventUpdate
+        else:  # effluent stats
+            fig=PlottingTools.Effluent_concenplot(data, OFFSET)
+
+    return fig
+
+
+@app.callback(
+    Output('HRT_SRT', 'figure'),
+    [Input('avn-db-store', 'data')],
+    [State('avn-db-store', 'data')])
+def update_HRTSRT(refresh, data):
+    import plotly.graph_objects as go
+    if not data:
+        raise PreventUpdate
+    else:
+        data = pd.read_json(data)
+        if len(data) == 0:
+            raise PreventUpdate
+        else:  # effluent stats
+            fig=PlottingTools.update_HRT_SRTtable(data, OFFSET)
+
+    return fig
+#%%
+app.run_server(debug=False)
+
+
+
+
+
+import importlib
+importlib.reload(PlottingTools)
+
+
 
 
 
@@ -667,7 +803,7 @@ def update_oxylevel(refresh, data):
 # #%%
 
 
-#             html.Div([html.H1('InfParmTable',style={'textAlign': 'center', 'color':'#7FDBFF'}),
+#             html.Div([html.H1('InfParmTable',style={'textAlign': 'center', 'color':'royalblue'}),
 #             dcc.Graph(dash_table.DataTable(id='influent-table',
 #                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
 #                                             style_as_list_view=True,
@@ -854,7 +990,7 @@ def update_oxylevel(refresh, data):
 #         ),
 
         
-#      html.Div(children=[html.H1('Effluent',style={'textAlign': 'center', 'color': '#7FDBFF'}),
+#      html.Div(children=[html.H1('Effluent',style={'textAlign': 'center', 'color': 'royalblue'}),
 #         dcc.Graph(id='Effluent ')], 
 #          className="three columns" , style={'display': 'inline-block','alignSelf': 'left','width': '96%','paddingLeft': '2%','paddingRight':'2%'}),
 # ])

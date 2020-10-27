@@ -411,6 +411,7 @@ def violinplotInfluent(df,offset):
     # y=1.02,
     # xanchor="right",
     # x=1))
+    fig.update_layout(font=dict(size=18))
     return fig
 
 
@@ -438,7 +439,7 @@ def InfluentConcen(df,offset):
     trace_nh4 = go.Scattergl(
         x=time,
         y=df['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N'],
-        name='K',
+        name='NH4',
         mode='lines',
         line=dict(
             dash='solid',
@@ -447,7 +448,7 @@ def InfluentConcen(df,offset):
     trace_K = go.Scattergl(
         x=time,
         y=df['pilEAUte-Primary settling tank effluent-Ammo_005-K'],
-        name='NH4',
+        name='K',
         mode='lines',
         line=dict(
             dash='solid',
@@ -511,6 +512,7 @@ def InfluentConcen(df,offset):
     fig.add_trace(trace_ratioCOD_NH4, row=3, col=1, secondary_y= False)
     
     fig.add_trace(trace_ratioCOD_TSS, row=3, col=1, secondary_y= True)
+    fig.update_layout(font=dict(size=18))
     return fig
 
 
@@ -528,9 +530,10 @@ def oxylevelplot(df,offset):
     time = df.index
 
 
-    fig = make_subplots(rows=2, cols=2, row_heights=[0.7, 0.3], specs=[ 
+    fig = make_subplots(rows=2, cols=2, row_heights=[0.7, 0.3], subplot_titles=('','Airflowrate m3/s'), 
+    specs=[ 
          [{'colspan': 2, 'type':'xy'}, None],
-        [{ 'colspan': 2}, None] 
+        [{'type':'xy'},{'type':'xy'}] 
            ])
 #Here is an example that creates a 2 by 2 subplot grid containing 3 subplots. The subplot specs element for position (1, 1) has a colspan value of 2, causing it to span the full figure width. The subplot specs element for position (1, 2) is None because no subplot begins at this location in the grid.
 
@@ -546,7 +549,7 @@ def oxylevelplot(df,offset):
 
     trace_copOxyg = go.Scattergl(
     x=time,
-    y=df['pilEAUte-copilote reactor 5-AIT_341-DO'],
+    y=df['pilEAUte-copilote reactor 4-AIT_341-DO'],
     name='DO-Copileaute',
     mode='lines',
     line=dict(
@@ -566,25 +569,259 @@ def oxylevelplot(df,offset):
     #         color = "royalblue",
     #         symbol = "star-triangle-down",
     #         size = 8) )
-    Airpileaute=go.Scattergl(x= [AirvalueNow,AirvalueNow], y= [0 , 1], mode = "lines+markers", line=dict(width=5), name='airflow pileaute reactor5', marker = dict(
+    Airpileaute=go.Scattergl(x= np.array([AirvalueNow,AirvalueNow]), y= np.array([0 , 1]), mode = "lines+markers", line=dict(width=5), name='airflow pileaute reactor5', marker = dict(
             color = "burlywood", line = dict(width=1), 
             symbol = "star-triangle-up",
             size = 10))
-    Aircopileaute=go.Scattergl(x= [AirvalueNowcop,AirvalueNowcop], y= [0 , 1], name='airflow copileaute reactor5',  mode = "lines+markers", line=dict(width=5), marker = dict(color = "black", line = dict(width=1), symbol = "star-triangle-up",size = 10))
+    Aircopileaute=go.Scattergl(x= np.array([AirvalueNowcop,AirvalueNowcop]), y= np.array([0 , 1]), name='airflow copileaute reactor5',  mode = "lines+markers", line=dict(width=5), marker = dict(color = "black", line = dict(width=1), symbol = "star-triangle-up",size = 10))
     Bardivn=100
-    fig.add_trace(go.Bar(x=np.arange(0.0001, 3* Maxvalue, 3* Maxvalue/Bardivn), y=np.linspace(1,1,Bardivn), name='Air dashboard', marker=dict(color=np.arange(0.0001, 4*Maxvalue,3*Maxvalue/Bardivn), colorscale='bluered'), width=0.02), row= 2, col=1)
-    fig.add_trace(Airpileaute, row= 2, col=1 )
-    fig.add_trace(Aircopileaute, row= 2, col=1 )
+    airflowbar=go.Bar(x=np.arange(0.0001, 3* Maxvalue, 3* Maxvalue/Bardivn), y=np.linspace(1.2,1.2,Bardivn), name='Air dashboard', marker=dict(color=np.arange(0.0001, 3* Maxvalue, 3* Maxvalue/Bardivn), colorscale='bluered'), width=0.002)
+
+    # airflowbar=go.Bar(x=np.array([0.3,0.8,0.7,0.02, 1])*0.01, y=np.array([0.5,0.22,0.5,0.22, 1]), name='Air dashboard', width=0.02)
+    fig.add_trace(Airpileaute, row= 2, col=1, secondary_y= False )
+    fig.add_trace(Aircopileaute, row= 2, col=1,secondary_y= False )
+    fig.add_trace(airflowbar, row= 2, col=1 , secondary_y= False)
+    fig.add_trace(airflowbar, row= 2, col=2 , secondary_y= False)
+
     annotations = []
-    annotations.append(dict(xref='x2', yref='y2', x=AirvalueNow, y=0.7,  text= str(round(AirvalueNow,3)) ,font=dict(family='Arial', size=20, color='black'),showarrow=False))
-    annotations.append(dict(xref='x2', yref='y2', x=AirvalueNowcop, y=0.3, text= str(round(AirvalueNowcop,3)) ,font=dict(family='Arial', size=20,color='black'),showarrow=False))
+    annotations.append(dict(xref='x2', yref='y2', x=AirvalueNow, y=1.3,  text= (str(round(AirvalueNow,3))) ,font=dict(family='Arial', size=16, color='black'),showarrow=False))
+    annotations.append(dict(xref='x2', yref='y2', x=AirvalueNowcop, y=1, text= (str(round(AirvalueNowcop,3))) ,font=dict(family='Arial', size=16,color='black'),showarrow=False))
 
     fig.update_layout(annotations=annotations)
+    fig.update_yaxes(showticklabels=False, row=2, col=1)
+    fig.update_yaxes(showticklabels=False, row=2, col=2)
+    fig.update_layout(font=dict(size=18))
     return fig
 #   
 #x=[np.arange(0,1,0.1)], y=np.linspace(1,1,10)  ,np.linspace(1,1,10) , 
 
 
+#***********TSS concentration************
+
+def TSSconcenplot(df, offset):
+    df.sort_index(inplace=True)
+    df.fillna(inplace=True, method='ffill')
+    df.index = df.index.map(lambda x: x.tz_localize(None))
+    df = df.groupby(pd.Grouper(freq='300S')).first()
+    threshold_time = pd.to_datetime(datetime.now() - timedelta(weeks=offset) - timedelta(hours=24*7))
+    df = df[df.index > threshold_time]
+    time = df.index
+
+
+    fig = make_subplots(rows=2, cols=1, subplot_titles=('TSS reactor','TSS recycle'))
+    trace_TSSp = go.Scattergl(
+        x=time,
+        y=df['pilEAUte-Pilote reactor 5-AIT_250-TSS']*1000,
+        name='TSS pilot reactor 5',
+        mode='lines',
+        line=dict(
+            dash='solid',
+            color='darkred'))
+
+    trace_TSScop = go.Scattergl(
+        x=time,
+        y=df['pilEAUte-copilote reactor 5-AIT_350-TSS']*1000,
+        name='TSS copilot reactor5',
+        mode='lines',
+        line=dict(
+            dash='longdash',
+            color='black'))
+
+    fig.add_trace(trace_TSSp, row=1, col=1, secondary_y=False),
+    fig.add_trace(trace_TSScop, row=1, col=1, secondary_y=False),
+
+    trace_TSSpsludge = go.Scattergl(
+        x=time,
+        y=df['pilEAUte-Pilote sludge recycle-AIT_260-TSS']*1000,
+        name='TSS recycle sludge pilot',
+        mode='lines',
+        line=dict(
+            dash='solid',
+            color='darkred'))
+
+    trace_TSScopsludge = go.Scattergl(
+        x=time,
+        y=df['pilEAUte-Copilote sludge recycle-AIT_360-TSS']*1000,
+        name='TSS recycle sludge copilot',
+        mode='lines',
+        line=dict(
+            dash='longdash',
+            color='black'))
+    
+    fig.add_trace(trace_TSSpsludge, row=2, col=1, secondary_y=False),
+    fig.add_trace(trace_TSScopsludge, row=2, col=1, secondary_y=False),
+    fig.update_layout(font=dict(size=18))
+    return fig
+
+
+#***********HRT & SRT calculation************
+
+
+def update_HRT_SRTtable(df,offset):
+    df.sort_index(inplace=True)
+    df.fillna(inplace=True, method='ffill')
+    df.index = df.index.map(lambda x: x.tz_localize(None))
+    df = df.groupby(pd.Grouper(freq='1200S')).first()
+    threshold_time = pd.to_datetime(datetime.now() - timedelta(weeks=offset) - timedelta(hours=24*7))
+    df = df[df.index > threshold_time]
+    time = df.index
+    HRT1 = 6.5/(np.mean(df['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)'][-1])* 3600) #(Vreactor=6.5m3)
+    HRT2 = 6.5/(df['pilEAUte-Copilote influent-FIT_120-Flowrate (Liquid)'][-1]* 3600)
+    Qeff1=df['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)'][-1]*3600
+    Qeff2=df['pilEAUte-Copilote influent-FIT_120-Flowrate (Liquid)'][-1]*3600
+    Xmlss1=df['pilEAUte-Pilote reactor 5-AIT_250-TSS'][-1]
+    Xmlss2=df['pilEAUte-copilote reactor 5-AIT_350-TSS'][-1]
+    Xeff1=df['pilEAUte-Pilote effluent-TurbR200-Turbidity'][-1]
+    Xeff2=df['pilEAUte-copilote effluent-TurbR300-Turbidity'][-1]
+    # SRT1 = Xmlss1*6.5/(Qeff1*Xeff1+Xmlss1*1.5)/24 #(Vreactor=6.5m3)
+    SRT1 = Xmlss1*6.5/(Qeff1*Xeff1+Xmlss1*0.01)/24 #(Vreactor=6.5m3)
+    SRT2 = df['pilEAUte-Copilote influent-FIT_120-Flowrate (Liquid)'][-1]*6.5
+    fig=go.Figure(
+        data=[go.Table(header=dict(values=['Param','pilot','copilot'], font=dict(size=24)),
+                        cells=dict(values=[['HRT (H)','SRT(d)'],
+                        [round(HRT1,2),round(HRT2,2)],
+                        [13, 13],
+                        ], font=dict(size=20))
+    )])
+
+    return fig
+
+
+
+#***********effluent  calculation plot ************
+def Effluent_concenplot(df, offset):
+
+    df.sort_index(inplace=True)
+    df.fillna(inplace=True, method='ffill')
+    df.index = df.index.map(lambda x: x.tz_localize(None))
+    df = df.groupby(pd.Grouper(freq='300S')).first()
+    threshold_time = pd.to_datetime(datetime.now() - timedelta(weeks=offset) - timedelta(hours=24*7))
+    df = df[df.index > threshold_time]
+    time = df.index
+    #df.index = df.index.tz_convert('US/Eastern')
+
+    fig = make_subplots(rows=2, cols=1, subplot_titles=('effluent_pilot','effluent_copilot'))
+#*******************pilot effluent part
+    trace_nh4 = go.Scattergl(
+        x=df.index,
+        y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000,
+        name='Ammonia',
+        mode='lines',
+        yaxis='y',
+        line=dict(
+            dash='solid',
+            color='blue'
+        ),
+    )
+    fig.add_trace(trace_nh4, row=1, col=1 )
+
+    # NO3
+    trace_no3 = go.Scattergl(
+        x=df.index,
+        y=df['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000,
+        name='Nitrate',
+        mode='lines',
+        yaxis='y',
+        line=dict(
+            dash='solid',
+            color='turquoise'
+        ),
+    )
+    fig.add_trace(trace_no3, row=1, col=1 )
+    # AvN
+    trace_avn = go.Scattergl(
+        x=df.index,
+        y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']
+        / df['pilEAUte-Pilote effluent-Varion_002-NO3_N'],
+        name='AvN ratio',
+        yaxis='y2',
+        mode='lines+markers',
+        line=dict(
+            dash='solid',
+            color='orange'
+        ),
+        marker={
+            'opacity': 0
+        }
+    )
+    fig.add_trace(trace_avn, row=1, col=1 )
+
+
+#********************cop effluent part
+    trace_nh4cop = go.Scattergl(
+        x=df.index,
+        y=df['pilEAUte-copilote effluent-Varion_001-NH4_N'] * 1000,
+        name='Ammonia',
+        mode='lines',
+        yaxis='y',
+        line=dict(
+            dash='solid',
+            color='blue'
+        ),
+    )
+    fig.add_trace(trace_nh4cop, row=2, col=1 )
+
+    # NO3
+    trace_no3cop = go.Scattergl(
+        x=df.index,
+        y=df['pilEAUte-copilote effluent-Varion_001-NO3_N'] * 1000,
+        name='Nitrate',
+        mode='lines',
+        yaxis='y',
+        line=dict(
+            dash='solid',
+            color='turquoise'
+        ),
+    )
+    fig.add_trace(trace_no3cop, row=2, col=1 )
+    # AvN
+    trace_avncop = go.Scattergl(
+        x=df.index,
+        y=df['pilEAUte-copilote effluent-Varion_001-NH4_N']/ df['pilEAUte-copilote effluent-Varion_001-NO3_N'],
+        name='AvN ratio',
+        yaxis='y2',
+        mode='lines+markers',
+        line=dict(
+            dash='solid',
+            color='orange'
+        ),
+        marker={
+            'opacity': 0
+        }
+    )
+    fig.add_trace(trace_avncop, row=2, col=1 )
+
+
+    # layout
+    layout_axes = []
+    name_axes = ['y1', 'y2']
+    title_axes = ['Nitrogen (mg/l)', 'AvN ratio']
+    n_axes = len(name_axes)
+
+    for i in range(len(name_axes)):
+        ax_pos = i * 0.075
+        layout_axes.append({
+            'title': title_axes[i],
+            'anchor': 'free',
+            'side': 'left',
+            'position': ax_pos
+        })
+
+    fig.update_layout(
+        xaxis={
+            'domain': [0.075 * (n_axes - 1), 1],
+            'title': 'Date and time'
+        },
+        yaxis=layout_axes[0],
+        yaxis2=layout_axes[1],
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(
+        size=18))
+
+    fig.update_xaxes(showticklabels=False, row=1, col=1)
+
+    return fig
 
 
 
