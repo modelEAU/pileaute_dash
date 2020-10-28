@@ -479,7 +479,6 @@ def InfluentConcen(df,offset):
     line=dict(
         dash='solid',
         color='darkorange'))
-    fig.add_trace(trace_COD, row=2, col=1, secondary_y=False)
 
     trace_TSS = go.Scattergl(
     x=time,
@@ -573,7 +572,7 @@ def oxylevelplot(df,offset):
             color = "burlywood", line = dict(width=1), 
             symbol = "star-triangle-up",
             size = 10))
-    Aircopileaute=go.Scattergl(x= np.array([AirvalueNowcop,AirvalueNowcop]), y= np.array([0 , 1]), name='airflow copileaute reactor5',  mode = "lines+markers", line=dict(width=5), marker = dict(color = "black", line = dict(width=1), symbol = "star-triangle-up",size = 10))
+    Aircopileaute=go.Scattergl(x= np.array([AirvalueNowcop,AirvalueNowcop]), y= np.array([0 , 1]), name='airflow copileaute reactor5',  mode = "lines+markers", line=dict(width=5), marker = dict(color = "white", line = dict(width=1), symbol = "star-triangle-up",size = 10))
     Bardivn=100
     airflowbar=go.Bar(x=np.arange(0.0001, 3* Maxvalue, 3* Maxvalue/Bardivn), y=np.linspace(1.2,1.2,Bardivn), name='Air dashboard', marker=dict(color=np.arange(0.0001, 3* Maxvalue, 3* Maxvalue/Bardivn), colorscale='bluered'), width=0.002)
 
@@ -676,14 +675,40 @@ def update_HRT_SRTtable(df,offset):
     # SRT1 = Xmlss1*6.5/(Qeff1*Xeff1+Xmlss1*1.5)/24 #(Vreactor=6.5m3)
     SRT1 = Xmlss1*6.5/(Qeff1*Xeff1+Xmlss1*0.01)/24 #(Vreactor=6.5m3)
     SRT2 = df['pilEAUte-Copilote influent-FIT_120-Flowrate (Liquid)'][-1]*6.5
-    fig=go.Figure(
-        data=[go.Table(header=dict(values=['Param','pilot','copilot'], font=dict(size=24)),
+
+
+    fig = make_subplots(rows=2, cols=1,  specs=[[{"type": "table"}],
+           [{"type": "table"}]], subplot_titles=('Influent measurement','HRT&SRT'))
+
+    TraceHRTSRT=go.Table(header=dict(values=['Param','pilot','copilot'], font=dict(size=24)),
                         cells=dict(values=[['HRT (H)','SRT(d)'],
                         [round(HRT1,2),round(HRT2,2)],
                         [13, 13],
-                        ], font=dict(size=20))
-    )])
+                        ], font=dict(size=20),  height=40))
 
+    Flow = df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)']
+    Temp = df['pilEAUte-Primary settling tank effluent-Ammo_005-Temperature']
+    pH=df['pilEAUte-Primary settling tank effluent-Ammo_005-pH']
+    TraceInfluenParam=go.Table(header=dict(values=['Param','Value_now','Average'], font=dict(size=24)),
+                        cells=dict(values=[['InFlow [m3/h]','Tempature  [C]','pH'],
+                        [round(Flow[-1],2),round(Temp[-1],2),round(pH[-1],2)],
+                        [round(Flow.mean(),2),round(Temp.mean(),2),round(pH.mean(),2)],
+                        ], font=dict(size=20),  height=40))
+    
+
+    fig.add_trace(TraceInfluenParam, row=1, col=1),
+    fig.add_trace(TraceHRTSRT, row=2, col=1),
+
+    # fig.update_layout(width=800, height=300)
+
+    # fig=go.Figure(
+    #     data=[go.Table(header=dict(values=['Param','pilot','copilot'], font=dict(size=24)),
+    #                     cells=dict(values=[['HRT (H)','SRT(d)'],
+    #                     [round(HRT1,2),round(HRT2,2)],
+    #                     [13, 13],
+    #                     ], font=dict(size=20),  height=40)
+    # )])
+    # fig.update_layout(width=800, height=200)
     return fig
 
 
@@ -792,35 +817,35 @@ def Effluent_concenplot(df, offset):
     fig.add_trace(trace_avncop, row=2, col=1 )
 
 
-    # layout
-    layout_axes = []
-    name_axes = ['y1', 'y2']
-    title_axes = ['Nitrogen (mg/l)', 'AvN ratio']
-    n_axes = len(name_axes)
+    # # layout
+    # layout_axes = []
+    # name_axes = ['y1', 'y2']
+    # title_axes = ['Nitrogen (mg/l)', 'AvN ratio']
+    # n_axes = len(name_axes)
 
-    for i in range(len(name_axes)):
-        ax_pos = i * 0.075
-        layout_axes.append({
-            'title': title_axes[i],
-            'anchor': 'free',
-            'side': 'left',
-            'position': ax_pos
-        })
+    # for i in range(len(name_axes)):
+    #     ax_pos = i * 0.075
+    #     layout_axes.append({
+    #         'title': title_axes[i],
+    #         'anchor': 'free',
+    #         'side': 'left',
+    #         'position': ax_pos
+    #     })
 
-    fig.update_layout(
-        xaxis={
-            'domain': [0.075 * (n_axes - 1), 1],
-            'title': 'Date and time'
-        },
-        yaxis=layout_axes[0],
-        yaxis2=layout_axes[1],
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(
-        size=18))
+    # fig.update_layout(
+    #     xaxis={
+    #         'domain': [0.075 * (n_axes - 1), 1],
+    #         'title': 'Date and time'
+    #     },
+    #     yaxis=layout_axes[0],
+    #     yaxis2=layout_axes[1],
+    #     paper_bgcolor='rgba(0,0,0,0)',
+    #     plot_bgcolor='rgba(0,0,0,0)',
+    #     font=dict(
+    #     size=18))
 
     fig.update_xaxes(showticklabels=False, row=1, col=1)
-
+    fig.update_layout(font=dict(size=18))
     return fig
 
 

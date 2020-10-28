@@ -198,10 +198,10 @@ app.layout = html.Div(
             html.H2('Influent concentration [mg/L]', style={'textAlign': 'center', 'color':'royalblue'}),
             dcc.Graph(id='InfluentConcentration')], className="five columns"),
 
-            html.Div([
-            html.H2(dcc.Markdown('Influent Parameter'), style={'textAlign': 'center', 'color':'royalblue'}),
-            dcc.Graph(id='InfParmTable')], className="three columns"),
-                ])
+            html.Div(children= [
+            #html.H2(dcc.Markdown('Influent Parameter'), style={'textAlign': 'center', 'color':'royalblue'}),
+            html.Div(dcc.Graph(id='HRT_SRT'))
+            ], className="three columns"),])
             ]),
 
         html.Br(),
@@ -227,6 +227,7 @@ app.layout = html.Div(
                         'paddingRight': '0%',
                     }
                 ),
+
                 html.Div(
                     id='table-div',
                     children=[
@@ -254,7 +255,7 @@ app.layout = html.Div(
                                                     'textAlign': 'left'
                                                 } for c in ['Parameter']
                                             ],
-                                            style_cell={'fontSize':30},
+                                            style_cell={'fontSize':20},
                                             style_data_conditional=[
                                                 {
                                                     'if': {'row_index': 'odd'},
@@ -285,7 +286,7 @@ app.layout = html.Div(
                                                 'fontWeight': 'bold',
                                                 'backgroundColor': 'rgb(230, 230, 230)',
                                             },
-                                            style_cell={'fontSize':30},
+                                            style_cell={'fontSize':20},
                                             style_cell_conditional=[
                                                 {
                                                     'if': {'column_id': c},
@@ -323,7 +324,7 @@ app.layout = html.Div(
                                                 'fontWeight': 'bold',
                                                 'backgroundColor': 'rgb(230, 230, 230)',
                                             },
-                                            style_cell={'fontSize':30},
+                                            style_cell={'fontSize':20},
                                             style_cell_conditional=[
                                                 {
                                                     'if': {'column_id': c},
@@ -337,8 +338,6 @@ app.layout = html.Div(
                                                 }
                                             ],
                                         ),
-                                        html.Br(),
-                                        html.Div(children=[dcc.Graph(id='HRT_SRT')],) 
                                     ],
                                     style={
                                         'display': 'inline-block',
@@ -350,7 +349,6 @@ app.layout = html.Div(
                                 ),
                             ],
                         ),
-                        html.Br(),
                     ],
                     style={
                         'float': 'right',
@@ -367,7 +365,10 @@ app.layout = html.Div(
 
      html.Div(children=[html.H2(dcc.Markdown('Effluent'),style={'textAlign': 'center', 'color': 'royalblue'}),
         dcc.Graph(id='Effluent_concen')], 
-         className="eight columns"),
+         className="six columns"),
+    html.Div(children=[html.H2(dcc.Markdown('Energy Bilan'),style={'textAlign': 'center', 'color': 'royalblue'}),
+        dcc.Graph(id='Energy_bilan')], 
+         className="three columns"),
 ])
 
 
@@ -644,34 +645,34 @@ def update_biological_stats(refresh, data):
 #%%
 
 
-@app.callback(
-    Output('InfParmTable', 'figure'),
-    [Input('avn-db-store', 'data')],
-    [State('avn-db-store', 'data')])
-def update_Influent_stats(refresh, data):
-    import plotly.graph_objects as go
-    if not data:
-        raise PreventUpdate
-    else:
-        data = pd.read_json(data)
-        if len(data) == 0:
-            raise PreventUpdate
-        else:  # effluent stats
-            data.index = data.index.map(lambda x: x.tz_localize(None))
-            data.fillna(inplace=True, method='ffill')
-            Flow = data['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)']
-            Temp = data['pilEAUte-Primary settling tank effluent-Ammo_005-Temperature']
-            pH=data['pilEAUte-Primary settling tank effluent-Ammo_005-pH']
-            fig=go.Figure(
-                data=[go.Table(header=dict(values=['Param','Value_now','Average'], font=dict(size=24)),
-                                cells=dict(values=[['InFlow [m3/h]','Tempature  [C]','pH'],
-                                [round(Flow[-1],2),round(Temp[-1],2),round(pH[-1],2)],
-                                [round(Flow.mean(),2),round(Temp.mean(),2),round(pH.mean(),2)],
-                                ], font=dict(size=20),  height=40)
-            )])
-            fig.update_layout(width=800, height=500)
+# @app.callback(
+#     Output('InfParmTable', 'figure'),
+#     [Input('avn-db-store', 'data')],
+#     [State('avn-db-store', 'data')])
+# def update_Influent_stats(refresh, data):
+#     import plotly.graph_objects as go
+#     if not data:
+#         raise PreventUpdate
+#     else:
+#         data = pd.read_json(data)
+#         if len(data) == 0:
+#             raise PreventUpdate
+#         else:  # effluent stats
+#             data.index = data.index.map(lambda x: x.tz_localize(None))
+#             data.fillna(inplace=True, method='ffill')
+#             Flow = data['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)']
+#             Temp = data['pilEAUte-Primary settling tank effluent-Ammo_005-Temperature']
+#             pH=data['pilEAUte-Primary settling tank effluent-Ammo_005-pH']
+#             fig=go.Figure(
+#                 data=[go.Table(header=dict(values=['Param','Value_now','Average'], font=dict(size=24)),
+#                                 cells=dict(values=[['InFlow [m3/h]','Tempature  [C]','pH'],
+#                                 [round(Flow[-1],2),round(Temp[-1],2),round(pH[-1],2)],
+#                                 [round(Flow.mean(),2),round(Temp.mean(),2),round(pH.mean(),2)],
+#                                 ], font=dict(size=20),  height=40)
+#             )])
+#             fig.update_layout(width=800, height=300)
 
-    return fig
+#     return fig
 
 
 @app.callback(
