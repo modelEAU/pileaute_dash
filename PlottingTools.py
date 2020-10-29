@@ -529,10 +529,10 @@ def oxylevelplot(df,offset):
     time = df.index
 
 
-    fig = make_subplots(rows=2, cols=2, row_heights=[0.7, 0.3], subplot_titles=('','Airflowrate m3/s'), 
+    fig = make_subplots(rows=2, cols=2, row_heights=[0.4, 0.6], subplot_titles=('',''), 
     specs=[ 
          [{'colspan': 2, 'type':'xy'}, None],
-        [{'type':'xy'},{'type':'xy'}] 
+        [{'type':'domain'},{'type':'domain'}] 
            ])
 #Here is an example that creates a 2 by 2 subplot grid containing 3 subplots. The subplot specs element for position (1, 1) has a colspan value of 2, causing it to span the full figure width. The subplot specs element for position (1, 2) is None because no subplot begins at this location in the grid.
 
@@ -561,35 +561,57 @@ def oxylevelplot(df,offset):
 
 
 
-    AirvalueNow=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)'][-1]
-    AirvalueNowcop=df['pilEAUte-copilote reactor 5-FIT_460-Flowrate (Gas)'][-1]
+    AirvalueNow=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)'][-1]*1000*60
+    AirvalueNowcop=df['pilEAUte-copilote reactor 5-FIT_460-Flowrate (Gas)'][-1]*1000*60
     Maxvalue=(df[['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)','pilEAUte-copilote reactor 5-FIT_460-Flowrate (Gas)']].max()).max()
     # Airpileaute=go.Scatterpolar(r=[1,2,3,4,5], theta = [1,2,3,4,5], name ='Airpileaute',mode = "lines+markers",marker = dict(
     #         color = "royalblue",
     #         symbol = "star-triangle-down",
-    #         size = 8) )
-    Airpileaute=go.Scattergl(x= np.array([AirvalueNow,AirvalueNow]), y= np.array([0 , 1]), mode = "lines+markers", line=dict(width=5), name='airflow pileaute reactor5', marker = dict(
-            color = "burlywood", line = dict(width=1), 
-            symbol = "star-triangle-up",
-            size = 10))
-    Aircopileaute=go.Scattergl(x= np.array([AirvalueNowcop,AirvalueNowcop]), y= np.array([0 , 1]), name='airflow copileaute reactor5',  mode = "lines+markers", line=dict(width=5), marker = dict(color = "white", line = dict(width=1), symbol = "star-triangle-up",size = 10))
-    Bardivn=100
-    airflowbar=go.Bar(x=np.arange(0.0001, 3* Maxvalue, 3* Maxvalue/Bardivn), y=np.linspace(1.2,1.2,Bardivn), name='Air dashboard', marker=dict(color=np.arange(0.0001, 3* Maxvalue, 3* Maxvalue/Bardivn), colorscale='bluered'), width=0.002)
+    #         size = 8) )  * 1000 * 60,
 
-    # airflowbar=go.Bar(x=np.array([0.3,0.8,0.7,0.02, 1])*0.01, y=np.array([0.5,0.22,0.5,0.22, 1]), name='Air dashboard', width=0.02)
+
+    Airpileaute= go.Indicator(
+        mode = "gauge+number+delta",
+        value = AirvalueNow,
+        domain = {'x': [0, 1], 'y': [0, 1]},
+        title = {'text': "Airflow pilot reactor5 [min/L]", 'align': 'left' },
+        gauge = {
+            'axis': {'range': [0, 1000], 'tickwidth': 1, 'tickcolor': "darkblue"},
+            'bar': {'color': "darkblue"},
+            'steps': [
+                {'range': [0, 250], 'color': 'cyan'},
+                {'range': [250, 500], 'color': 'limegreen'},
+                {'range': [500, 750], 'color': 'chocolate'},
+                {'range': [750, 1000], 'color': 'red'}],
+
+            'threshold': {
+                'line': {'color': "black", 'width': 4},
+                'thickness': 0.75,
+                'value': 950}})
+    
+    Aircoppileaute= go.Indicator(
+        mode = "gauge+number+delta",
+        value = AirvalueNowcop,
+        domain = {'x': [0.2, 0.8], 'y': [0.2, 0.8]},
+        title = {'text': "Airflow copilot reactor5 [min/L]", 'align': 'right' },
+        gauge = {
+            'axis': {'range': [0, 1000], 'tickwidth': 1, 'tickcolor': "darkblue"},
+            'bar': {'color': "darkblue"},
+            'steps': [
+                {'range': [0, 250], 'color': 'cyan'},
+                {'range': [250, 500], 'color': 'limegreen'},
+                {'range': [500, 750], 'color': 'chocolate'},
+                {'range': [750, 1000], 'color': 'red'}],
+
+            'threshold': {
+                'line': {'color': "black", 'width': 4},
+                'thickness': 0.75,
+                'value': 950}})
+
     fig.add_trace(Airpileaute, row= 2, col=1, secondary_y= False )
-    fig.add_trace(Aircopileaute, row= 2, col=1,secondary_y= False )
-    fig.add_trace(airflowbar, row= 2, col=1 , secondary_y= False)
-    fig.add_trace(airflowbar, row= 2, col=2 , secondary_y= False)
+    fig.add_trace(Aircoppileaute, row= 2, col=2, secondary_y= False )
 
-    annotations = []
-    annotations.append(dict(xref='x2', yref='y2', x=AirvalueNow, y=1.3,  text= (str(round(AirvalueNow,3))) ,font=dict(family='Arial', size=16, color='black'),showarrow=False))
-    annotations.append(dict(xref='x2', yref='y2', x=AirvalueNowcop, y=1, text= (str(round(AirvalueNowcop,3))) ,font=dict(family='Arial', size=16,color='black'),showarrow=False))
-
-    fig.update_layout(annotations=annotations)
-    fig.update_yaxes(showticklabels=False, row=2, col=1)
-    fig.update_yaxes(showticklabels=False, row=2, col=2)
-    fig.update_layout(font=dict(size=18))
+    fig.update_layout(font=dict(size=14))
     return fig
 #   
 #x=[np.arange(0,1,0.1)], y=np.linspace(1,1,10)  ,np.linspace(1,1,10) , 
@@ -607,7 +629,7 @@ def TSSconcenplot(df, offset):
     time = df.index
 
 
-    fig = make_subplots(rows=2, cols=1, subplot_titles=('TSS reactor','TSS recycle'))
+    fig = make_subplots(rows=2, cols=1, subplot_titles=('TSS pilot','TSS copilot'))
     trace_TSSp = go.Scattergl(
         x=time,
         y=df['pilEAUte-Pilote reactor 5-AIT_250-TSS']*1000,
@@ -624,10 +646,10 @@ def TSSconcenplot(df, offset):
         mode='lines',
         line=dict(
             dash='longdash',
-            color='black'))
+            color='darked'))
 
     fig.add_trace(trace_TSSp, row=1, col=1, secondary_y=False),
-    fig.add_trace(trace_TSScop, row=1, col=1, secondary_y=False),
+    fig.add_trace(trace_TSScop, row=2, col=1, secondary_y=False),
 
     trace_TSSpsludge = go.Scattergl(
         x=time,
@@ -636,7 +658,7 @@ def TSSconcenplot(df, offset):
         mode='lines',
         line=dict(
             dash='solid',
-            color='darkred'))
+            color='black'))
 
     trace_TSScopsludge = go.Scattergl(
         x=time,
@@ -647,7 +669,7 @@ def TSSconcenplot(df, offset):
             dash='longdash',
             color='black'))
     
-    fig.add_trace(trace_TSSpsludge, row=2, col=1, secondary_y=False),
+    fig.add_trace(trace_TSSpsludge, row=1, col=1, secondary_y=False),
     fig.add_trace(trace_TSScopsludge, row=2, col=1, secondary_y=False),
     fig.update_layout(font=dict(size=18))
     return fig
@@ -686,7 +708,7 @@ def update_HRT_SRTtable(df,offset):
                         [13, 13],
                         ], font=dict(size=20),  height=40))
 
-    Flow = df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)']
+    Flow = df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)']*3600
     Temp = df['pilEAUte-Primary settling tank effluent-Ammo_005-Temperature']
     pH=df['pilEAUte-Primary settling tank effluent-Ammo_005-pH']
     TraceInfluenParam=go.Table(header=dict(values=['Param','Value_now','Average'], font=dict(size=24)),
@@ -817,33 +839,6 @@ def Effluent_concenplot(df, offset):
     fig.add_trace(trace_avncop, row=2, col=1 )
 
 
-    # # layout
-    # layout_axes = []
-    # name_axes = ['y1', 'y2']
-    # title_axes = ['Nitrogen (mg/l)', 'AvN ratio']
-    # n_axes = len(name_axes)
-
-    # for i in range(len(name_axes)):
-    #     ax_pos = i * 0.075
-    #     layout_axes.append({
-    #         'title': title_axes[i],
-    #         'anchor': 'free',
-    #         'side': 'left',
-    #         'position': ax_pos
-    #     })
-
-    # fig.update_layout(
-    #     xaxis={
-    #         'domain': [0.075 * (n_axes - 1), 1],
-    #         'title': 'Date and time'
-    #     },
-    #     yaxis=layout_axes[0],
-    #     yaxis2=layout_axes[1],
-    #     paper_bgcolor='rgba(0,0,0,0)',
-    #     plot_bgcolor='rgba(0,0,0,0)',
-    #     font=dict(
-    #     size=18))
-
     fig.update_xaxes(showticklabels=False, row=1, col=1)
     fig.update_layout(font=dict(size=18))
     return fig
@@ -860,3 +855,33 @@ if __name__ == '__main__':
     end = time.time()
     print(f'This took {end-start} seconds')
 
+
+# #***************bar creaction with graduation color scale
+
+#     Airpileaute=go.Scattergl(x= np.array([AirvalueNow,AirvalueNow]), y= np.array([0 , 1]), mode = "lines+markers", line=dict(width=5), name='airflow pileaute reactor5', marker = dict(
+#             color = "burlywood", line = dict(width=1), 
+#             symbol = "star-triangle-up",
+#             size = 10))
+#     Aircopileaute=go.Scattergl(x= np.array([AirvalueNowcop,AirvalueNowcop]), y= np.array([0 , 1]), name='airflow copileaute reactor5',  mode = "lines+markers", line=dict(width=5), marker = dict(color = "white", line = dict(width=1), symbol = "star-triangle-up",size = 10))
+#     Bardivn=100
+#     airflowbar=go.Bar(x=np.arange(0.0001, 3* Maxvalue, 3* Maxvalue/Bardivn), y=np.linspace(1.2,1.2,Bardivn), name='Air dashboard', marker=dict(color=np.arange(0.0001, 3* Maxvalue, 3* Maxvalue/Bardivn), colorscale='bluered'), width=0.002)
+
+    # Airpileaute=go.Scattergl(x= np.array([AirvalueNow,AirvalueNow]), y= np.array([0 , 1]), mode = "lines+markers", line=dict(width=5), name='airflow pileaute reactor5', marker = dict(
+    #         color = "burlywood", line = dict(width=1), 
+    #         symbol = "star-triangle-up",
+    #         size = 10))
+    # Aircopileaute=go.Scattergl(x= np.array([AirvalueNowcop,AirvalueNowcop]), y= np.array([0 , 1]), name='airflow copileaute reactor5',  mode = "lines+markers", line=dict(width=5), marker = dict(color = "white", line = dict(width=1), symbol = "star-triangle-up",size = 10))
+    # Bardivn=100
+    # airflowbar=go.Bar(x=np.arange(0.0001, 3* Maxvalue, 3* Maxvalue/Bardivn), y=np.linspace(1.2,1.2,Bardivn), name='Air dashboard', marker=dict(color=np.arange(0.0001, 3* Maxvalue, 3* Maxvalue/Bardivn), colorscale='bluered'), width=0.002)
+
+    # # airflowbar=go.Bar(x=np.array([0.3,0.8,0.7,0.02, 1])*0.01, y=np.array([0.5,0.22,0.5,0.22, 1]), name='Air dashboard', width=0.02)
+    # fig.add_trace(Airpileaute, row= 2, col=1, secondary_y= False )
+    # fig.add_trace(Aircopileaute, row= 2, col=1,secondary_y= False )
+    # fig.add_trace(airflowbar, row= 2, col=1 , secondary_y= False)
+    # fig.add_trace(airflowbar, row= 2, col=2 , secondary_y= False)
+
+    # annotations = []
+    # annotations.append(dict(xref='x2', yref='y2', x=AirvalueNow, y=1.3,  text= (str(round(AirvalueNow,3))) ,font=dict(family='Arial', size=16, color='black'),showarrow=False))
+    # annotations.append(dict(xref='x2', yref='y2', x=AirvalueNowcop, y=1, text= (str(round(AirvalueNowcop,3))) ,font=dict(family='Arial', size=16,color='black'),showarrow=False))
+
+    # fig.update_layout(annotations=annotations)
