@@ -267,18 +267,18 @@ def debug(engine):
 if __name__ == "__main__":
     engine = connect_local(local_server, database_name)
     if engine_runs(engine):
-        print('local connection engine is running')
+        print('Local connection engine is running')
     else:
-        print('local connection engine failed to connect. Trying remote')
+        print('Local connection engine failed to connect. Trying remote')
         engine = connect_remote(remote_server, database_name, 'login.txt')
         if engine_runs(engine):
-            print('remote connection engine is running')
+            print('Remote connection engine is running')
+            try:
+                debug(engine)
+            except Exception as e:
+                print(e)
+            finally:
+                engine.dispose()
         else:
             print('Remote connection engine failed to connect. Quitting.')
 
-    try:
-        debug(engine)
-    except Exception as e:
-        print(e)
-    finally:
-        engine.dispose()
