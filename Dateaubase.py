@@ -269,7 +269,7 @@ if __name__ == "__main__":
     if engine_runs(engine):
         print('Local connection engine is running')
     else:
-        print('Local connection engine failed to connect. Trying remote')
+        print('Local connection engine failed to connect --> Trying remote')
         engine = connect_remote(remote_server, database_name, 'login.txt')
         if engine_runs(engine):
             print('Remote connection engine is running')
