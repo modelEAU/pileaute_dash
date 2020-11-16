@@ -381,7 +381,7 @@ def violinplotInfluent(df,offset):
     df = df[df.index > threshold_time]
     df.sort_index(inplace=True)
     df.fillna(inplace=True, method='ffill')
-    df = df.groupby(pd.Grouper(freq='300S')).first()
+    df = df.groupby(pd.Grouper(freq='600S')).first()
     #Spectro unit is 1000 times
     SpectroColum=[df.columns[df.columns.str.contains('Spectro')]]
     df[SpectroColum[0]]=df[SpectroColum[0]]*1000
@@ -398,9 +398,9 @@ def violinplotInfluent(df,offset):
     fig = make_subplots(rows=2, cols=closnumber)
     # Top
     for i, element in enumerate(InfluentVariable):
-        print(i, str(element))
+        VriablePlace=element[40:].find('-')
         Load=df[str(element)].mul(Flow)*24 # (mg/l*m3/h->g/d)
-        plotname=go.Violin(y=Load,box_visible=True, meanline_visible=True, name=element[40:])
+        plotname=go.Violin(y=Load,box_visible=True, meanline_visible=True, name=element[40:][VriablePlace+1:])
         if i + 1 <= closnumber:
             fig.add_trace(plotname,row=1,col=i+1)
         else:
@@ -421,7 +421,7 @@ def InfluentConcen(df,offset):
     df.sort_index(inplace=True)
     df.fillna(inplace=True, method='ffill')
     df.index = df.index.map(lambda x: x.tz_localize(None))
-    df = df.groupby(pd.Grouper(freq='300S')).first()
+    df = df.groupby(pd.Grouper(freq='600S')).first()
     threshold_time = pd.to_datetime(datetime.now() - timedelta(weeks=offset) - timedelta(hours=24*7))
     df = df[df.index > threshold_time]
     time = df.index
@@ -511,7 +511,9 @@ def InfluentConcen(df,offset):
     fig.add_trace(trace_ratioCOD_NH4, row=3, col=1, secondary_y= False)
     
     fig.add_trace(trace_ratioCOD_TSS, row=3, col=1, secondary_y= True)
+    fig.update_yaxes(title_text="Ratio", range=[0,10], showgrid=False, row=3, col=1)
     fig.update_layout(font=dict(size=18))
+
     return fig
 
 
@@ -563,17 +565,13 @@ def oxylevelplot(df,offset):
 
     AirvalueNow=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)'][-1]*1000*60
     AirvalueNowcop=df['pilEAUte-copilote reactor 5-FIT_460-Flowrate (Gas)'][-1]*1000*60
-    Maxvalue=(df[['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)','pilEAUte-copilote reactor 5-FIT_460-Flowrate (Gas)']].max()).max()
-    # Airpileaute=go.Scatterpolar(r=[1,2,3,4,5], theta = [1,2,3,4,5], name ='Airpileaute',mode = "lines+markers",marker = dict(
-    #         color = "royalblue",
-    #         symbol = "star-triangle-down",
-    #         size = 8) )  * 1000 * 60,
+
 
 
     Airpileaute= go.Indicator(
         mode = "gauge+number+delta",
         value = AirvalueNow,
-        domain = {'x': [0, 1], 'y': [0, 1]},
+        #domain = {'x': [0, 0.5], 'y': [0, 0.5]},
         title = {'text': "Airflow pilot reactor5 [min/L]", 'align': 'left' },
         gauge = {
             'axis': {'range': [0, 1000], 'tickwidth': 1, 'tickcolor': "darkblue"},
@@ -592,7 +590,7 @@ def oxylevelplot(df,offset):
     Aircoppileaute= go.Indicator(
         mode = "gauge+number+delta",
         value = AirvalueNowcop,
-        domain = {'x': [0.2, 0.8], 'y': [0.2, 0.8]},
+        #domain = {'x': [0, 1], 'y': [0, 0.5]},
         title = {'text': "Airflow copilot reactor5 [min/L]", 'align': 'right' },
         gauge = {
             'axis': {'range': [0, 1000], 'tickwidth': 1, 'tickcolor': "darkblue"},
@@ -646,7 +644,7 @@ def TSSconcenplot(df, offset):
         mode='lines',
         line=dict(
             dash='longdash',
-            color='darked'))
+            color='darkred'))
 
     fig.add_trace(trace_TSSp, row=1, col=1, secondary_y=False),
     fig.add_trace(trace_TSScop, row=2, col=1, secondary_y=False),
@@ -699,27 +697,28 @@ def update_HRT_SRTtable(df,offset):
     SRT2 = df['pilEAUte-Copilote influent-FIT_120-Flowrate (Liquid)'][-1]*6.5
 
 
-    fig = make_subplots(rows=2, cols=1,  specs=[[{"type": "table"}],
-           [{"type": "table"}]], subplot_titles=('Influent measurement','HRT&SRT'))
+    fig = make_subplots(rows=2, cols=1, row_heights=[0.6, 0.4], specs=[[{"type": "table"}],
+           [{"type": "table"}]], subplot_titles=())
 
-    TraceHRTSRT=go.Table(header=dict(values=['Param','pilot','copilot'], font=dict(size=24)),
+    TraceHRTSRT=go.Table(header=dict(values=['Param','pilot','copilot'], font=dict(size=30)),
                         cells=dict(values=[['HRT (H)','SRT(d)'],
                         [round(HRT1,2),round(HRT2,2)],
                         [13, 13],
-                        ], font=dict(size=20),  height=40))
+                        ], font=dict(size=20),  height=30))
 
     Flow = df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)']*3600
     Temp = df['pilEAUte-Primary settling tank effluent-Ammo_005-Temperature']
     pH=df['pilEAUte-Primary settling tank effluent-Ammo_005-pH']
-    TraceInfluenParam=go.Table(header=dict(values=['Param','Value_now','Average'], font=dict(size=24)),
+    TraceInfluenParam=go.Table(header=dict(values=['Param','Value_now','Average'], font=dict(size=30)),
                         cells=dict(values=[['InFlow [m3/h]','Tempature  [C]','pH'],
                         [round(Flow[-1],2),round(Temp[-1],2),round(pH[-1],2)],
                         [round(Flow.mean(),2),round(Temp.mean(),2),round(pH.mean(),2)],
-                        ], font=dict(size=20),  height=40))
+                        ], font=dict(size=20),  height=30))
     
 
     fig.add_trace(TraceInfluenParam, row=1, col=1),
     fig.add_trace(TraceHRTSRT, row=2, col=1),
+    fig
 
     # fig.update_layout(width=800, height=300)
 
@@ -747,7 +746,7 @@ def Effluent_concenplot(df, offset):
     time = df.index
     #df.index = df.index.tz_convert('US/Eastern')
 
-    fig = make_subplots(rows=2, cols=1, subplot_titles=('effluent_pilot','effluent_copilot'))
+    fig = make_subplots(rows=1, cols=2, subplot_titles=('effluent_pilot','effluent_copilot'))
 #*******************pilot effluent part
     trace_nh4 = go.Scattergl(
         x=df.index,
@@ -806,7 +805,7 @@ def Effluent_concenplot(df, offset):
             color='blue'
         ),
     )
-    fig.add_trace(trace_nh4cop, row=2, col=1 )
+    fig.add_trace(trace_nh4cop, row=1, col=2)
 
     # NO3
     trace_no3cop = go.Scattergl(
@@ -820,7 +819,7 @@ def Effluent_concenplot(df, offset):
             color='turquoise'
         ),
     )
-    fig.add_trace(trace_no3cop, row=2, col=1 )
+    fig.add_trace(trace_no3cop, row=1, col=2)
     # AvN
     trace_avncop = go.Scattergl(
         x=df.index,
@@ -836,7 +835,7 @@ def Effluent_concenplot(df, offset):
             'opacity': 0
         }
     )
-    fig.add_trace(trace_avncop, row=2, col=1 )
+    fig.add_trace(trace_avncop, row=1, col=2 )
 
 
     fig.update_xaxes(showticklabels=False, row=1, col=1)

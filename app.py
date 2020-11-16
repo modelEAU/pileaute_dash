@@ -25,7 +25,7 @@ if Dateaubase.engine_runs(engine):
     print('connect successful')
 
 # USER DEFINED PARAMETERS
-NEW_DATA_INTERVAL = 30  # seconds
+NEW_DATA_INTERVAL = 300  # seconds
 DAYS_OF_DATA = 1  # days
 OFFSET = 34  # weeks
 
@@ -90,7 +90,7 @@ app.layout = html.Div(
         html.Div(
             children=[
                 html.Img(
-                    src='assets/flowsheetPilEAUte_avn.png',
+                    src='assets/flowsheetPilEAUte1.png',
                     style={'align': 'middle'}
                 ),
             ],

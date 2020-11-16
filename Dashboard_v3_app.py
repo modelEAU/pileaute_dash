@@ -77,7 +77,7 @@ import PlottingTools
 import calculateKPIs
 # USER DEFINED PARAMETERS
 # USER DEFINED PARAMETERS
-NEW_DATA_INTERVAL = 120  # seconds
+NEW_DATA_INTERVAL = 300  # seconds
 DAYS_OF_DATA = 1  # days
 OFFSET = 34  # weeks
 
@@ -220,7 +220,7 @@ app.layout = html.Div(
                     ],
                     style={
                         'float': 'left',
-                        'width': '70%',
+                        'width': '100%',
                         # 'borderStyle': 'solid',
                         'display': 'inline-block',
                         'paddingLeft': '2%',
@@ -228,144 +228,144 @@ app.layout = html.Div(
                     }
                 ),
 
-                html.Div(
-                    id='table-div',
-                    children=[
-                    #html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center', 'color':'royalblue'}),
-                        html.Div(
-                            id='floor-1',
-                            children=[
-                                html.Div(
-                                    children=[
-                                        html.H2(
-                                            dcc.Markdown('AvN_inffluent'),
-                                            style={'textAlign': 'left'}
-                                        ),
-                                        dash_table.DataTable(
-                                            id='influent-table',# purge 1.5m3/h
-                                            columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
-                                            style_as_list_view=True,
-                                            style_header={
-                                                'fontWeight': 'bold',
-                                                'backgroundColor': 'rgb(230, 230, 230)',
-                                            },
-                                            style_cell_conditional=[
-                                                {
-                                                    'if': {'column_id': c},
-                                                    'textAlign': 'left'
-                                                } for c in ['Parameter']
-                                            ],
-                                            style_cell={'fontSize':20},
-                                            style_data_conditional=[
-                                                {
-                                                    'if': {'row_index': 'odd'},
-                                                    'backgroundColor': 'rgb(248, 248, 248)'
-                                                }
-                                            ],
-                                        ),
-                                    ],
-                                    style={
-                                        'display': 'inline-block',
-                                        'alignSelf': 'left',
-                                        'width': '96%',
-                                        'paddingLeft': '2%',
-                                        'paddingRight': '2%'
-                                    },
-                                ),
-                                html.Div(
-                                    children=[
-                                        html.H2(
-                                            dcc.Markdown('AvN_effluent_pilot'),
-                                            style={'textAlign': 'left'},
-                                        ),
-                                        dash_table.DataTable(
-                                            id='effluent-table-pil',# purge 1.5m3/h
-                                            columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
-                                            style_as_list_view=True,
-                                            style_header={
-                                                'fontWeight': 'bold',
-                                                'backgroundColor': 'rgb(230, 230, 230)',
-                                            },
-                                            style_cell={'fontSize':20},
-                                            style_cell_conditional=[
-                                                {
-                                                    'if': {'column_id': c},
-                                                    'textAlign': 'left'
-                                                } for c in ['Parameter']
-                                            ],
-                                            style_data_conditional=[
-                                                {
-                                                    'if': {'row_index': 'odd'},
-                                                    'backgroundColor': 'rgb(248, 248, 248)'
-                                                }
-                                            ],
-                                        ),
-                                    ],
-                                    style={
-                                        'display': 'inline-block',
-                                        'alignSelf': 'left',
-                                        'width': '96%',
-                                        'paddingLeft': '2%',
-                                        'paddingRight': '2%'
-                                    },
-                                ),
-                                html.Br(),
-                                html.Div(
-                                    children=[
-                                        html.H2(
-                                            dcc.Markdown('AvN_effluent_copilot'),
-                                            style={'textAlign': 'left'},
-                                        ),
-                                        dash_table.DataTable(
-                                            id='effluent-table-cop',
-                                            columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
-                                            style_as_list_view=True,
-                                            style_header={
-                                                'fontWeight': 'bold',
-                                                'backgroundColor': 'rgb(230, 230, 230)',
-                                            },
-                                            style_cell={'fontSize':20},
-                                            style_cell_conditional=[
-                                                {
-                                                    'if': {'column_id': c},
-                                                    'textAlign': 'left'
-                                                } for c in ['Parameter']
-                                            ],
-                                            style_data_conditional=[
-                                                {
-                                                    'if': {'row_index': 'odd'},
-                                                    'backgroundColor': 'rgb(248, 248, 248)'
-                                                }
-                                            ],
-                                        ),
-                                    ],
-                                    style={
-                                        'display': 'inline-block',
-                                        'alignSelf': 'left',
-                                        'width': '96%',
-                                        'paddingLeft': '2%',
-                                        'paddingRight': '2%',
-                                    },
-                                ),
-                            ],
-                        ),
-                    ],
-                    style={
-                        'float': 'right',
-                        'width': '20%',
-                        # 'borderStyle': "solid",
-                        'display': 'inline-block',
-                        'paddingLeft': '0%',
-                        'paddingRight': '0%',
-                    }
-                ),
+                # html.Div(
+                #     id='table-div',
+                #     children=[
+                #     #html.H2(dcc.Markdown("Aggregate statistics"), style={'textAlign': 'center', 'color':'royalblue'}),
+                #         html.Div(
+                #             id='floor-1',
+                #             children=[
+                #                 html.Div(
+                #                     children=[
+                #                         html.H2(
+                #                             dcc.Markdown('AvN_inffluent'),
+                #                             style={'textAlign': 'left'}
+                #                         ),
+                #                         dash_table.DataTable(
+                #                             id='influent-table',# purge 1.5m3/h
+                #                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
+                #                             style_as_list_view=True,
+                #                             style_header={
+                #                                 'fontWeight': 'bold',
+                #                                 'backgroundColor': 'rgb(230, 230, 230)',
+                #                             },
+                #                             style_cell_conditional=[
+                #                                 {
+                #                                     'if': {'column_id': c},
+                #                                     'textAlign': 'left'
+                #                                 } for c in ['Parameter']
+                #                             ],
+                #                             style_cell={'fontSize':20},
+                #                             style_data_conditional=[
+                #                                 {
+                #                                     'if': {'row_index': 'odd'},
+                #                                     'backgroundColor': 'rgb(248, 248, 248)'
+                #                                 }
+                #                             ],
+                #                         ),
+                #                     ],
+                #                     style={
+                #                         'display': 'inline-block',
+                #                         'alignSelf': 'left',
+                #                         'width': '96%',
+                #                         'paddingLeft': '2%',
+                #                         'paddingRight': '2%'
+                #                     },
+                #                 ),
+                #                 html.Div(
+                #                     children=[
+                #                         html.H2(
+                #                             dcc.Markdown('AvN_effluent_pilot'),
+                #                             style={'textAlign': 'left'},
+                #                         ),
+                #                         dash_table.DataTable(
+                #                             id='effluent-table-pil',# purge 1.5m3/h
+                #                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
+                #                             style_as_list_view=True,
+                #                             style_header={
+                #                                 'fontWeight': 'bold',
+                #                                 'backgroundColor': 'rgb(230, 230, 230)',
+                #                             },
+                #                             style_cell={'fontSize':20},
+                #                             style_cell_conditional=[
+                #                                 {
+                #                                     'if': {'column_id': c},
+                #                                     'textAlign': 'left'
+                #                                 } for c in ['Parameter']
+                #                             ],
+                #                             style_data_conditional=[
+                #                                 {
+                #                                     'if': {'row_index': 'odd'},
+                #                                     'backgroundColor': 'rgb(248, 248, 248)'
+                #                                 }
+                #                             ],
+                #                         ),
+                #                     ],
+                #                     style={
+                #                         'display': 'inline-block',
+                #                         'alignSelf': 'left',
+                #                         'width': '96%',
+                #                         'paddingLeft': '2%',
+                #                         'paddingRight': '2%'
+                #                     },
+                #                 ),
+                #                 html.Br(),
+                #                 html.Div(
+                #                     children=[
+                #                         html.H2(
+                #                             dcc.Markdown('AvN_effluent_copilot'),
+                #                             style={'textAlign': 'left'},
+                #                         ),
+                #                         dash_table.DataTable(
+                #                             id='effluent-table-cop',
+                #                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
+                #                             style_as_list_view=True,
+                #                             style_header={
+                #                                 'fontWeight': 'bold',
+                #                                 'backgroundColor': 'rgb(230, 230, 230)',
+                #                             },
+                #                             style_cell={'fontSize':20},
+                #                             style_cell_conditional=[
+                #                                 {
+                #                                     'if': {'column_id': c},
+                #                                     'textAlign': 'left'
+                #                                 } for c in ['Parameter']
+                #                             ],
+                #                             style_data_conditional=[
+                #                                 {
+                #                                     'if': {'row_index': 'odd'},
+                #                                     'backgroundColor': 'rgb(248, 248, 248)'
+                #                                 }
+                #                             ],
+                #                         ),
+                #                     ],
+                #                     style={
+                #                         'display': 'inline-block',
+                #                         'alignSelf': 'left',
+                #                         'width': '96%',
+                #                         'paddingLeft': '2%',
+                #                         'paddingRight': '2%',
+                #                     },
+                #                 ),
+                #             ],
+                #         ),
+                #     ],
+                #     style={
+                #         'float': 'right',
+                #         'width': '20%',
+                #         # 'borderStyle': "solid",
+                #         'display': 'inline-block',
+                #         'paddingLeft': '0%',
+                #         'paddingRight': '0%',
+                #     }
+                # ),
             ],
             style={'textAlign': 'center', 'paddingLeft': '0%', 'paddingRight': '0%', 'width': '100%'}
         ),
 
      html.Div(children=[html.H2(dcc.Markdown('Effluent'),style={'textAlign': 'center', 'color': 'royalblue'}),
         dcc.Graph(id='Effluent_concen')], 
-         className="six columns"),
+         className="eight columns"),
     html.Div(children=[html.H2(dcc.Markdown('Energy Bilan'),style={'textAlign': 'center', 'color': 'royalblue'}),
         dcc.Graph(id='Energy_bilan')], 
          className="three columns"),
@@ -442,40 +442,6 @@ def store_data(n, data):
     return json_data
 
 
-@app.callback(
-    Output('avn-graph', 'figure'),
-    [Input('avn-db-store', 'data')]
-)
-def avn_graph(data):
-    if not data:
-        raise PreventUpdate
-    else:
-        df = pd.read_json(data)
-        if len(df) == 0:
-            raise PreventUpdate
-        else:
-            Qair_col = df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)"]
-            print(Qair_col.mean())
-
-            _, peak_average = calculateKPIs.peak_stats(Qair_col, 400 / (60 * 1000))
-            #print("Peak average", peak_average)
-            df.index = df.index.map(lambda x: x.tz_localize(None))
-            # for col in df.columns:
-            #    print(col, len(df[col].dropna()))
-            if len(peak_average) != 0:
-                df = pd.concat([df, peak_average], axis=1, sort=False)
-                df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-avg cycle"].interpolate(method='linear', inplace=True)
-                df["pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-fAE"].interpolate(method='linear', inplace=True)
-            df = df[~df.isna()]
-            print('trying to graph')
-            print('After concat',len(df))
-            # for col in df.columns:
-                #print(col, len(df[col].dropna()))
-            fig = PlottingTools.threefigs(df)
-            print('finished creating the figure')
-            # print('AvN fig has been created')
-        return fig
-
 
 @app.callback(
     Output('influent-table', 'data'),
@@ -506,43 +472,6 @@ def update_influent_stats(refresh, data):
             })
         return df.to_dict('records')
 
-
-@app.callback(
-    Output('effluent-table-pil', 'data'),
-    [Input('refresh-interval', 'n_intervals')],
-    [State('avn-db-store', 'data')])
-def update_effluent_stats(refresh, data):
-    if not data:
-        raise PreventUpdate
-    else:
-        data = pd.read_json(data)
-        if len(data) == 0:
-            raise PreventUpdate
-        else:  # effluent stats
-            data.index = data.index.map(lambda x: x.tz_localize(None))
-            NH4_col = data['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000
-            NO3_col = data['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000
-            NH4in_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
-            NO3in_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-NO3_N']
-            NH4_now, NH4_24 = calculateKPIs.stats_24(NH4_col, OFFSET)
-
-            NO3_now, NO3_24 = calculateKPIs.stats_24(NO3_col, OFFSET)
-
-            NO2_now, NO2_24 = 0, 0
-
-            AvN_now = NH4_now - (NO3_now + NO2_now)
-            AvN_24 = NH4_24 - (NO3_24 + NO2_24)
-
-            # influent values
-            NH4in_now, NH4in_24 = calculateKPIs.stats_24(NH4in_col, OFFSET)
-            NO3in_now, NO3in_24 = calculateKPIs.stats_24(NO3in_col, OFFSET)
-
-            df = pd.DataFrame.from_dict({
-                'Parameter': ['NH4 (mg/l)', 'NO2 (mg/l)', 'NO3 (mg/l)', 'AvN difference (mg/l)'],
-                'Now': [f'{NH4_now:.2f}', f'{NO2_now:.2f}', f'{NO3_now:.2f}', f'{AvN_now:.2f}'],
-                'Last 24 hrs': [f'{NH4_24:.2f}', f'{NO2_24:.2f}', f'{NO3_24:.2f}', f'{AvN_24:.2f}'],
-            })
-        return df.to_dict('records')
 
 
 @app.callback(
@@ -658,6 +587,7 @@ def update_Influentload_stats(refresh, data):
         else:  # effluent stats
             fig=PlottingTools.violinplotInfluent(data, OFFSET)
             print('influent load done')
+            print('working')
     return fig
 
 
