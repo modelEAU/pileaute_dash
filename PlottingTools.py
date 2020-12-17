@@ -843,6 +843,44 @@ def Effluent_concenplot(df, offset):
     return fig
 
 
+#**********************Energy calculation
+def EnergyPlot(df, offset):
+    #df = df.rolling('3600s').mean()
+    fig = make_subplots(rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'domain'}]])
+    labels=['Pump', 'Aeration']
+        
+    #### Aeration energy calculation
+    Kla = 240
+    kla5 = 84
+    # formular: KLa(T) = 1.024^(T-15)*Kla15
+    # AerationCusm = 
+
+
+    ####pump energy calculation
+    fpeQin = 0.004  # kwh m-3
+    fpeQr = 0.008 # recycle flow including external, internal sludge recycle
+    fpeQw = 0.05 # wastesludge
+    fpeQpu = 0.075 # primary clarifier underflow
+    fpeQtu = 0.06 # thichner unit underflow
+    fpeQodo = 0.004 # dewatering unit
+    pumpenergy_cal = 10
+
+    Qinf0=df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)'][-1]*3600
+    Qinf1=df['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)'][-1]*3600
+    Qinf2=df['pilEAUte-Copilote influent-FIT_120-Flowrate (Liquid)'][-1]*3600
+    Qrec1=df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)'][-1]*3600
+    Qrec1=df['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)'][-1]*3600
+    Qrec2=df['pilEAUte-Copilote influent-FIT_120-Flowrate (Liquid)'][-1]*3600
+
+    ###### Mixing energy
+    # MEanaerodige= MEas * Vi * dt --MEas = 0.005kwm-3
+
+
+    trace1 = go.Pie(labels=labels, values=[16, 15], name="Enegry budget")
+    fig.add_trace(trace1,1,1)
+    fig.update_traces(hole=0.4, hoverinfo="label+percent+name")
+
+    return fig
 
 
 
