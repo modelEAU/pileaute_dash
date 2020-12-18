@@ -844,41 +844,56 @@ def Effluent_concenplot(df, offset):
 
 
 #**********************Energy calculation
-def EnergyPlot(df, offset):
+def Energy_bilanPlot(df, offset):
     #df = df.rolling('3600s').mean()
-    fig = make_subplots(rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'domain'}]])
-    labels=['Pump', 'Aeration']
-        
+    EnergyScale = df.index[-1] - df.index[0]
+    EnergyScale = EnergyScale.total_seconds()/3600
     #### Aeration energy calculation
     Kla = 240
     kla5 = 84
     # formular: KLa(T) = 1.024^(T-15)*Kla15
     # AerationCusm = 
 
-
+    Aerationpi = 0.5
+    Aerationcop = 0.5
     ####pump energy calculation
-    fpeQin = 0.004  # kwh m-3
-    fpeQr = 0.008 # recycle flow including external, internal sludge recycle
+    fpeQin = 0.004  # kwh m-3 internal recycle flow
+    fpeQr = 0.008 # recycle flow including external, sludge recycle
     fpeQw = 0.05 # wastesludge
     fpeQpu = 0.075 # primary clarifier underflow
     fpeQtu = 0.06 # thichner unit underflow
     fpeQodo = 0.004 # dewatering unit
     pumpenergy_cal = 10
 
-    Qinf0=df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)'][-1]*3600
-    Qinf1=df['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)'][-1]*3600
-    Qinf2=df['pilEAUte-Copilote influent-FIT_120-Flowrate (Liquid)'][-1]*3600
-    Qrec1=df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)'][-1]*3600
-    Qrec1=df['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)'][-1]*3600
-    Qrec2=df['pilEAUte-Copilote influent-FIT_120-Flowrate (Liquid)'][-1]*3600
+    # transfer m3/h to m3/d
+    Qinf0=df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)'] * 24
+    Qinf1=df['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)']* 24
+    Qinf2=df['pilEAUte-Copilote influent-FIT_120-Flowrate (Liquid)'] * 24
+    Qrec1=df['pilEAUte-Pilote sludge recycle-FIT_260-Flowrate (Liquid)'] * 24
+    Qrec2=df['pilEAUte-Copilote sludge recycle-FIT_360-Flowrate (Liquid)'] * 24
+    PumpEnergy_inf = Qinf0 * fpeQin 
+    PumpEnergy_pi  = Qinf1 * fpeQin + Qrec1 * fpeQr
+    PumpEnergy_cop =  Qinf2 * fpeQin + Qrec2 * fpeQr 
 
+    Tot_PumpEnergy_inf = PumpEnergy_inf.mean()
+    Tot_PumpEnergy_pi = PumpEnergy_pi.mean()
+    Tot_PumpEnergy_cop = PumpEnergy_cop.mean()
     ###### Mixing energy
     # MEanaerodige= MEas * Vi * dt --MEas = 0.005kwm-3
+    MEanaerodige = 0.005 * (1 + 1.5) * EnergyScale #(kwh)
 
 
-    trace1 = go.Pie(labels=labels, values=[16, 15], name="Enegry budget")
+    fig = make_subplots(rows=1, cols=2, specs=[[{'type':'domain'}, {'type':'domain'}]])
+
+    trace1 = go.Pie(labels=['PumpEnergy_pileaute','PumpEnergy_copileaute','Aeration_pileaute', 'Aeration_copileaute'], values=[Tot_PumpEnergy_pi, Tot_PumpEnergy_cop, Aerationpi, Aerationcop], hole=0.4, hoverinfo="label+percent+name")
+
+    trace2 = go.Pie(labels=['PumpEnergy','AerationEnergy','MixingEnergy'], values=[round(Tot_PumpEnergy_inf+Tot_PumpEnergy_pi+Tot_PumpEnergy_cop, 3),    ( Aerationpi + Aerationcop), round(MEanaerodige,3)  ], hole=0, hoverinfo='label+percent+name', textinfo='label+value+percent')
     fig.add_trace(trace1,1,1)
-    fig.update_traces(hole=0.4, hoverinfo="label+percent+name")
+    fig.add_trace(trace2,1,2)
+    #fig.update_layout(title_text = 'Enegry budget [kwh]', annotations=[dict(text='energy pie', x=0.5, y=1, font_size=20, showarrow=False)], legend=dict(
+    #orientation="v",))
+    fig.update_layout(title_text = 'Enegry budget [kwh]', legend=dict(orientation="h",  x=1,
+        y=1.2, yanchor="top",))
 
     return fig
 

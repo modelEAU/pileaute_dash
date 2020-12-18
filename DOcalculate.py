@@ -42,5 +42,8 @@ start_string = datetime.strftime(start_time, TIME_FORMAT)
 
 
 extract_energy = Energy_shopping_list(start_string, end_string)
-energyData = Dateaubase.extract_data(engine, extract_energy)
-energyData =  energyData.groupby(pd.Grouper(freq='3600S')).mean()
+energyDataorg = Dateaubase.extract_data(engine, extract_energy)
+energyDataorg .fillna(inplace=True, method='ffill')
+energyData =  energyDataorg.groupby(pd.Grouper(freq='1d')).mean()*3600
+energyData['pilEAUte-Pilote sludge recycle-FIT_260-Flowrate (Liquid)']=energyData['pilEAUte-Pilote sludge recycle-FIT_260-Flowrate (Liquid)']/3600
+energyData .fillna(inplace=True, method='ffill')

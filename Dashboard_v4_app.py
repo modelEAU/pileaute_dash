@@ -172,8 +172,10 @@ def Energy_shopping_list(beginning_string, ending_string):
         'Primary settling tank influent',
         'Pilote influent',
         'Copilote influent',
-        'Pilot sludge recycle',
-        'Copilot sludge recycle',
+        'Pilote sludge recycle',
+        'Copilote sludge recycle',
+        'Pilote internal recycle IN',
+        'Copilote internal recycle IN',
         'Pilote reactor 4',
         'Copilote reactor 4']
     equip_list = [
@@ -182,10 +184,14 @@ def Energy_shopping_list(beginning_string, ending_string):
         'FIT-120',# flow
         'FIT-260',
         'FIT-360',
+        'FIT-250',
+        'FIT-350',
         'FIT-420',
         'FIT-450'
          ]
     param_list = [
+        'Flowrate (Liquid)',
+        'Flowrate (Liquid)',
         'Flowrate (Liquid)',
         'Flowrate (Liquid)',
         'Flowrate (Liquid)',
@@ -212,6 +218,7 @@ app.layout = html.Div(
     children=[
         dcc.Interval(id='refresh-interval', interval=NEW_DATA_INTERVAL * 1000, n_intervals=0),
         dcc.Store(id='avn-db-store'),
+         dcc.Store(id='energydata'),
         html.Div(
             children=[
                 html.Img(
@@ -590,10 +597,71 @@ def update_HRTSRT(refresh, data):
     return fig
 
 
+
+@app.callback(
+    Output('energydata','data'),
+    [Input('refresh-interval', 'n_intervals')],
+    [State('energydata', 'data')])
+def store_dataenergy(n, data):
+    end_time, start_time = (
+        pd.to_datetime(
+            datetime.utcnow() - timedelta(weeks=OFFSET)
+        ).tz_localize("UTC"),
+        pd.to_datetime(
+            datetime.utcnow() - timedelta(weeks=OFFSET) - timedelta(seconds=INTERVAL_LENGTH_SEC)
+        ).tz_localize("UTC"))
+
+    end_string = datetime.strftime(end_time, TIME_FORMAT)
+    start_string = datetime.strftime(start_time, TIME_FORMAT)
+
+    try:
+        stored_df = pd.read_json(data)
+    except Exception:
+        stored_df = pd.DataFrame()
+    if len(stored_df) != 0:
+        last_time = pd.to_datetime(list(stored_df.index)[-1])
+        last_string = last_time.strftime(TIME_FORMAT)
+        # print(start_string)
+        # print(f'{last_string} - last update')
+        if last_time > start_time:
+            start_string = last_string
+
+    print(f'{len(stored_df)} points are in the store')
+    print(f'Data from {start_string} to {end_string} will be extracted.')
+    extract_list = Energy_shopping_list(start_string, end_string)
+    print('trying to get new data')
+    energyDataorg = Dateaubase.extract_data(engine, extract_list)
+    energyDataorg .fillna(inplace=True, method='ffill')
+    energyData =  energyDataorg.groupby(pd.Grouper(freq='1d')).mean()*3600
+    energyData['pilEAUte-Pilote sludge recycle-FIT_260-Flowrate (Liquid)']=energyData['pilEAUte-Pilote sludge recycle-FIT_260-Flowrate (Liquid)']/3600
+    energyData .fillna(inplace=True, method='ffill')
+    
+    if len(stored_df) == 0:
+        print('No stored data')
+        complete_df = energyData
+    else:
+        if len(energyData) == 0:
+            print('No new data. Update aborted.')
+            raise PreventUpdate
+        else:
+            current_time = pd.to_datetime(datetime.now())
+            #print(current_time)
+            print('Updating store with new data')
+            print(f'stored_df has {len(stored_df)} lines')
+            complete_df = pd.concat([stored_df, energyData], sort=True)
+            complete_df = complete_df.iloc[len(energyData):]
+            # print(f'complete_df has {len(complete_df)} lines')
+    # print('Storing data')
+    json_data = complete_df.to_json(date_format='iso')
+
+    return json_data
+
+
+
 @app.callback(
     Output('Energy_bilan', 'figure'),
-    [Input('avn-db-store', 'n_intervals')],
-    [State('avn-db-store', 'data')])
+    [Input('energydata','data')],
+    [State('energydata', 'data')])
 def update_EnegryBilan(refresh, data):
     import plotly.graph_objects as go
     if not data:
