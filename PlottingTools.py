@@ -884,8 +884,8 @@ def Energy_bilanPlot(df, offset):
     Qrec1=df['pilEAUte-Pilote sludge recycle-FIT_260-Flowrate (Liquid)'] * 24
     Qrec2=df['pilEAUte-Copilote sludge recycle-FIT_360-Flowrate (Liquid)'] * 24*3600
     PumpEnergy_inf = Qinf0 * fpeQin 
-    PumpEnergy_pi  = (1 + 1) * Qinf1 * fpeQin + Qrec1 * fpeQr
-    PumpEnergy_cop = (1 + 1) * Qinf2 * fpeQin + Qrec2 * fpeQr 
+    PumpEnergy_pi  = (1 + 1) * Qinf1 * fpeQin + Qrec1 * fpeQr + 0.5 *fpeQw
+    PumpEnergy_cop = (1 + 1) * Qinf2 * fpeQin + Qrec2 * fpeQr + 0.5 *fpeQw
 
     Tot_PumpEnergy_inf = PumpEnergy_inf.sum()*EnergyTimeStep /EnergyScale 
     Tot_PumpEnergy_pi = PumpEnergy_pi.sum()*EnergyTimeStep  /EnergyScale 
