@@ -22,12 +22,12 @@ import importlib
 importlib.reload(PlottingTools)
 
 # # Setting constants
-# database_name = 'dateaubase2020'
-# remote_server = r'132.203.190.77'
+#database_name = 'dateaubase2020'
+#remote_server = r'132.203.190.77'
 
-# with open('login.txt') as f:
-# 	username = f.readline().strip()
-# 	password = f.readline().strip()
+#with open('login.txt') as f:
+#	username = f.readline().strip()
+ #	password = f.readline().strip()
 
 
 # def connect_remote(server, database, login_file):
@@ -47,12 +47,9 @@ importlib.reload(PlottingTools)
 
 
 # # Default plotting theme
-# pio.templates.default = "plotly_white"
-# # external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-# external_scripts = ['https://cdn.jsdelivr.net/npm/file-saver@2.0.2/dist/FileSaver.min.js']
-# app = dash.Dash(__name__, external_scripts=external_scripts,)
-# app.config['suppress_callback_exceptions'] = True
-
+# Default plotting theme
+external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+pio.templates.default = "plotly_white"
 try:
     COMPUTER_NAME = os.environ['COMPUTERNAME']
 except KeyError:
@@ -68,8 +65,9 @@ else:
     conn = Dateaubase.connect_remote(Dateaubase.remote_server, DATABASE_NAME, 'login.txt')
 
 
-
-
+engine=conn
+if Dateaubase.engine_runs(engine):
+    print('connect successful')
 pio.templates.default = "plotly_white"
 
 pd.options.display.float_format = '{:,.2f}'.format
@@ -102,7 +100,7 @@ import PlottingTools
 import calculateKPIs
 # USER DEFINED PARAMETERS
 # USER DEFINED PARAMETERS
-NEW_DATA_INTERVAL = 300  # seconds
+NEW_DATA_INTERVAL = 600  # seconds
 DAYS_OF_DATA = 1  # days
 OFFSET = 52  # weeks
 
@@ -110,6 +108,7 @@ OFFSET = 52  # weeks
 INTERVAL_LENGTH_SEC = DAYS_OF_DATA * 24 * 60 * 60
 STORE_MAX_LENGTH = INTERVAL_LENGTH_SEC  # worst-case of sensor that updates every second
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 
 
 
@@ -238,7 +237,7 @@ def Energy_shopping_list(beginning_string, ending_string):
 
 
 app = dash.Dash(__name__)
-
+suppress_callback_exceptions=True
 app.layout = html.Div(
     children=[
         dcc.Interval(id='refresh-interval', interval=NEW_DATA_INTERVAL * 1000, n_intervals=0),
@@ -601,15 +600,10 @@ def update_EnegryBilan(refresh, data):
     return fig
 
 #%%
-app.run_server(debug=False)
+#app.run_server(debug=False)
 
 
-
-
-
-import importlib
-importlib.reload(PlottingTools)
-
-
+if __name__ == '__main__':
+    app.run_server(debug=True)
 
 
