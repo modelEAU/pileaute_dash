@@ -21,30 +21,6 @@ import calculateKPIs
 import importlib
 importlib.reload(PlottingTools)
 
-# # Setting constants
-#database_name = 'dateaubase2020'
-#remote_server = r'132.203.190.77'
-
-#with open('login.txt') as f:
-#	username = f.readline().strip()
- #	password = f.readline().strip()
-
-
-# def connect_remote(server, database, login_file):
-# 	with open(login_file) as f:
-# 		username = f.readline().strip()
-# 		password = parse.quote_plus(f.readline().strip())
-# 	engine = create_engine(f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server', connect_args={'connect_timeout': 2}, fast_executemany=True)
-# 	return engine
-
-
-# engine = connect_remote(remote_server, database_name, 'login.txt')
-
-
-# if Dateaubase.engine_runs(engine):
-#     print('connect successful')
-
-
 
 # # Default plotting theme
 # Default plotting theme
@@ -57,12 +33,27 @@ except KeyError:
 
 DATABASE_NAME = 'dateaubase2020'
 
+#remote_server = r'132.203.190.77'
+
+with open('login.txt') as f:
+	username = f.readline().strip()
+	password = f.readline().strip()
+
+
+def connect_remote(server, database, login_file):
+	with open(login_file) as f:
+		username = f.readline().strip()
+		password = parse.quote_plus(f.readline().strip())
+	engine = create_engine(f'mssql+pyodbc://{username}:{password}@{server}/{database}?driver=ODBC+Driver+17+for+SQL+Server', connect_args={'connect_timeout': 2}, fast_executemany=True)
+	return engine
+
+
 if COMPUTER_NAME == 'GCI-PR-DATEAU02':
     print('connecting to local DB')
     conn = Dateaubase.connect_local(Dateaubase.local_server, DATABASE_NAME)
 else:
     print('connecting to remote DB')
-    conn = Dateaubase.connect_remote(Dateaubase.remote_server, DATABASE_NAME, 'login.txt')
+    conn = connect_remote(Dateaubase.remote_server, DATABASE_NAME, 'login.txt')
 
 
 engine=conn
@@ -381,35 +372,6 @@ def store_data(n, data):
     return json_data
 
 
-
-@app.callback(
-    Output('influent-table', 'data'),
-    [Input('refresh-interval', 'n_intervals')],
-    [State('avn-db-store', 'data')])
-def update_influent_stats(refresh, data):
-    if not data:
-        raise PreventUpdate
-    else:
-        data = pd.read_json(data)
-        if len(data) == 0:
-            raise PreventUpdate
-        else:
-            data.index = data.index.map(lambda x: x.tz_localize(None))
-            NH4_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
-            COD_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-COD'] * 1000
-            print(NH4_col.mean())
-            NH4_now, NH4_24 = calculateKPIs.stats_24(NH4_col, OFFSET)
-
-            COD_now, COD_24 = calculateKPIs.stats_24(COD_col, OFFSET)
-
-            ratio_now = COD_now / NH4_now
-            ratio_24 = COD_24 / NH4_24
-            df = pd.DataFrame.from_dict({
-                'Parameter': ['COD (mg/l)', 'NH4 (mg/l)', 'COD/NH4 (-)'],
-                'Now': [f'{COD_now:.2f}', f'{NH4_now:.2f}', f'{ratio_now:.2f}'],
-                'Last 24 hrs': [f'{COD_24:.2f}', f'{NH4_24:.2f}', f'{ratio_24:.2f}'],
-            })
-        return df.to_dict('records')
 
 
 
