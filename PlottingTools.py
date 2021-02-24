@@ -881,11 +881,13 @@ def Energy_bilanPlot(df, offset):
     Qinf0=df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)'] * 24 *3600
     Qinf1=df['pilEAUte-Pilote influent-FIT_110-Flowrate (Liquid)']* 24*3600
     Qinf2=df['pilEAUte-Copilote influent-FIT_120-Flowrate (Liquid)'] * 24*3600
+    Qintrec1=df['pilEAUte-Pilote internal recycle IN-FIT_250-Flowrate (Liquid)']* 24*3600
+    Qintrec2=df['pilEAUte-Copilote internal recycle IN-FIT_350-Flowrate (Liquid)'] * 24*3600
     Qrec1=df['pilEAUte-Pilote sludge recycle-FIT_260-Flowrate (Liquid)'] * 24
     Qrec2=df['pilEAUte-Copilote sludge recycle-FIT_360-Flowrate (Liquid)'] * 24*3600
     PumpEnergy_inf = Qinf0 * fpeQin 
-    PumpEnergy_pi  = (1 + 1) * Qinf1 * fpeQin + Qrec1 * fpeQr + 0.5 *fpeQw
-    PumpEnergy_cop = (1 + 1) * Qinf2 * fpeQin + Qrec2 * fpeQr + 0.5 *fpeQw
+    PumpEnergy_pi  = (1+1 ) * (Qinf1+Qintrec1) * fpeQin + Qrec1 * fpeQr +  0.2*Qrec1  *fpeQw
+    PumpEnergy_cop = (1+1 ) * (Qinf2+Qintrec2) * fpeQin + Qrec2 * fpeQr + 0.2*Qrec2 *fpeQw
 
     Tot_PumpEnergy_inf = PumpEnergy_inf.sum()*EnergyTimeStep /EnergyScale 
     Tot_PumpEnergy_pi = PumpEnergy_pi.sum()*EnergyTimeStep  /EnergyScale 
