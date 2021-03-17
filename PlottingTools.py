@@ -412,6 +412,7 @@ def violinplotInfluent(df,offset):
     # xanchor="right",
     # x=1))
     fig.update_layout(font=dict(size=18))
+    print('run')
     return fig
 
 
@@ -438,7 +439,7 @@ def InfluentConcen(df,offset):
     # NH4
     trace_nh4 = go.Scattergl(
         x=time,
-        y=df['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N'],
+        y=df['pilEAUte-Primary settling tank effluent-Ammo_004-NH4_N'],
         name='NH4',
         mode='lines',
         line=dict(
@@ -447,7 +448,7 @@ def InfluentConcen(df,offset):
 
     trace_K = go.Scattergl(
         x=time,
-        y=df['pilEAUte-Primary settling tank effluent-Ammo_005-K'],
+        y=df['pilEAUte-Primary settling tank effluent-Ammo_004-K'],
         name='K',
         mode='lines',
         line=dict(
@@ -464,7 +465,7 @@ def InfluentConcen(df,offset):
 
     trace_COD = go.Scattergl(
     x=time,
-    y=df['pilEAUte-Primary settling tank effluent-Spectro_010-COD'],
+    y=df['pilEAUte-Primary settling tank effluent-Spectro_002-COD'],
     name='COD',
     mode='lines',
     line=dict(
@@ -473,7 +474,7 @@ def InfluentConcen(df,offset):
 
     trace_CODf = go.Scattergl(
     x=time,
-    y=df['pilEAUte-Primary settling tank effluent-Spectro_010-CODf'],
+    y=df['pilEAUte-Primary settling tank effluent-Spectro_002-CODf'],
     name='COD_f',
     mode='lines',
     line=dict(
@@ -482,7 +483,7 @@ def InfluentConcen(df,offset):
 
     trace_TSS = go.Scattergl(
     x=time,
-    y=df['pilEAUte-Primary settling tank effluent-Spectro_010-TSS'],
+    y=df['pilEAUte-Primary settling tank effluent-Spectro_002-TSS'],
     name='TSS',
     mode='lines',
     line=dict(
@@ -493,14 +494,14 @@ def InfluentConcen(df,offset):
     fig.add_trace(trace_TSS, row=2, col=1, secondary_y=True),
 
 
-    ratioCOD_NH4=df['pilEAUte-Primary settling tank effluent-Spectro_010-COD']/ df['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
+    ratioCOD_NH4=df['pilEAUte-Primary settling tank effluent-Spectro_002-COD']/ df['pilEAUte-Primary settling tank effluent-Ammo_004-NH4_N']
     trace_ratioCOD_NH4 = go.Scattergl(x=time, y =ratioCOD_NH4,
         name='COD/NH4 ratio, typical COD/TN~8-12',
         line=dict(
         dash='longdashdot',
         color='dimgrey'))
 
-    ratioCOD_TSS=df['pilEAUte-Primary settling tank effluent-Spectro_010-COD']/ df['pilEAUte-Primary settling tank effluent-Spectro_010-TSS']
+    ratioCOD_TSS=df['pilEAUte-Primary settling tank effluent-Spectro_002-COD']/ df['pilEAUte-Primary settling tank effluent-Spectro_002-TSS']
     trace_ratioCOD_TSS = go.Scattergl(x=time, y =ratioCOD_TSS,
         name='COD/TSS ratio, typical COD/VSS~1.4~1.6',
         line=dict(
@@ -707,8 +708,8 @@ def update_HRT_SRTtable(df,offset):
                         ], font=dict(size=20),  height=30))
 
     Flow = df['pilEAUte-Primary settling tank influent-FIT_100-Flowrate (Liquid)']*3600
-    Temp = df['pilEAUte-Primary settling tank effluent-Ammo_005-Temperature']
-    pH=df['pilEAUte-Primary settling tank effluent-Ammo_005-pH']
+    Temp = df['pilEAUte-Primary settling tank effluent-Ammo_004-Temperature']
+    pH=df['pilEAUte-Primary settling tank effluent-Ammo_004-pH']
     TraceInfluenParam=go.Table(header=dict(values=['Param','Value_now','Average'], font=dict(size=30)),
                         cells=dict(values=[['InFlow [m3/h]','Tempature  [C]','pH'],
                         [round(Flow[-1],2),round(Temp[-1],2),round(pH[-1],2)],

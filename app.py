@@ -93,7 +93,7 @@ import calculateKPIs
 # USER DEFINED PARAMETERS
 NEW_DATA_INTERVAL = 600  # seconds
 DAYS_OF_DATA = 1  # days
-OFFSET = 52  # weeks
+OFFSET = 55  # weeks
 
 # INITIALIZATION
 INTERVAL_LENGTH_SEC = DAYS_OF_DATA * 24 * 60 * 60
@@ -130,14 +130,14 @@ def AvN_shopping_list(beginning_string, ending_string):
         'FIT-100',
         'FIT-110',
         'FIT-120', # flow
-        'Ammo_005',
-        'Ammo_005',
-        'Ammo_005',
-        'Ammo_005',# ammo
-        'Spectro_010',
-        'Spectro_010',
-        'Spectro_010',
-        'Spectro_010', # spectro
+        'Ammo_004',
+        'Ammo_004',
+        'Ammo_004',
+        'Ammo_004',# ammo
+        'Spectro_002',
+        'Spectro_002',
+        'Spectro_002',
+        'Spectro_002', # spectro
         'Varion_002','Varion_002',
         'Varion_001','Varion_001', # Varion
         'FIT-430', 
@@ -377,7 +377,7 @@ def store_data(n, data):
 
 @app.callback(
     Output('InfluentLoad', 'figure'),
-    [Input('avn-db-store', 'n_intervals')],
+    [Input('avn-db-store', 'data')],
     [State('avn-db-store', 'data')])
 def update_Influentload_stats(refresh, data):
     import plotly.graph_objects as go
@@ -389,8 +389,6 @@ def update_Influentload_stats(refresh, data):
             raise PreventUpdate
         else:  # effluent stats
             fig=PlottingTools.violinplotInfluent(data, OFFSET)
-            print('influent load done')
-            print('working')
     return fig
 
 
