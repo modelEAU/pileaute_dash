@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-import os
+
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -21,19 +21,9 @@ import calculateKPIs
 import importlib
 importlib.reload(PlottingTools)
 
-
-# # Default plotting theme
-# Default plotting theme
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
-pio.templates.default = "plotly_white"
-try:
-    COMPUTER_NAME = os.environ['COMPUTERNAME']
-except KeyError:
-    COMPUTER_NAME = 'not_windows'
-
-DATABASE_NAME = 'dateaubase2020'
-
-#remote_server = r'132.203.190.77'
+# Setting constants
+database_name = 'dateaubase2020'
+remote_server = r'132.203.190.77'
 
 with open('login.txt') as f:
 	username = f.readline().strip()
@@ -48,17 +38,13 @@ def connect_remote(server, database, login_file):
 	return engine
 
 
-if COMPUTER_NAME == 'GCI-PR-DATEAU02':
-    print('connecting to local DB')
-    conn = Dateaubase.connect_local(Dateaubase.local_server, DATABASE_NAME)
-else:
-    print('connecting to remote DB')
-    conn = connect_remote(Dateaubase.remote_server, DATABASE_NAME, 'login.txt')
+engine = connect_remote(remote_server, database_name, 'login.txt')
 
 
-engine=conn
 if Dateaubase.engine_runs(engine):
     print('connect successful')
+
+
 pio.templates.default = "plotly_white"
 
 pd.options.display.float_format = '{:,.2f}'.format
@@ -91,15 +77,14 @@ import PlottingTools
 import calculateKPIs
 # USER DEFINED PARAMETERS
 # USER DEFINED PARAMETERS
-NEW_DATA_INTERVAL = 600  # seconds
+NEW_DATA_INTERVAL = 300  # seconds
 DAYS_OF_DATA = 1  # days
-OFFSET = 55  # weeks
+OFFSET = 52  # weeks
 
 # INITIALIZATION
 INTERVAL_LENGTH_SEC = DAYS_OF_DATA * 24 * 60 * 60
 STORE_MAX_LENGTH = INTERVAL_LENGTH_SEC  # worst-case of sensor that updates every second
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
-
 
 
 
@@ -130,14 +115,14 @@ def AvN_shopping_list(beginning_string, ending_string):
         'FIT-100',
         'FIT-110',
         'FIT-120', # flow
-        'Ammo_004',
-        'Ammo_004',
-        'Ammo_004',
-        'Ammo_004',# ammo
-        'Spectro_002',
-        'Spectro_002',
-        'Spectro_002',
-        'Spectro_002', # spectro
+        'Ammo_005',
+        'Ammo_005',
+        'Ammo_005',
+        'Ammo_005',# ammo
+        'Spectro_010',
+        'Spectro_010',
+        'Spectro_010',
+        'Spectro_010', # spectro
         'Varion_002','Varion_002',
         'Varion_001','Varion_001', # Varion
         'FIT-430', 
@@ -228,7 +213,7 @@ def Energy_shopping_list(beginning_string, ending_string):
 
 
 app = dash.Dash(__name__)
-suppress_callback_exceptions=True
+
 app.layout = html.Div(
     children=[
         dcc.Interval(id='refresh-interval', interval=NEW_DATA_INTERVAL * 1000, n_intervals=0),
@@ -373,11 +358,40 @@ def store_data(n, data):
 
 
 
+@app.callback(
+    Output('influent-table', 'data'),
+    [Input('refresh-interval', 'n_intervals')],
+    [State('avn-db-store', 'data')])
+def update_influent_stats(refresh, data):
+    if not data:
+        raise PreventUpdate
+    else:
+        data = pd.read_json(data)
+        if len(data) == 0:
+            raise PreventUpdate
+        else:
+            data.index = data.index.map(lambda x: x.tz_localize(None))
+            NH4_col = data['pilEAUte-Primary settling tank effluent-Ammo_005-NH4_N']
+            COD_col = data['pilEAUte-Primary settling tank effluent-Spectro_010-COD'] * 1000
+            print(NH4_col.mean())
+            NH4_now, NH4_24 = calculateKPIs.stats_24(NH4_col, OFFSET)
+
+            COD_now, COD_24 = calculateKPIs.stats_24(COD_col, OFFSET)
+
+            ratio_now = COD_now / NH4_now
+            ratio_24 = COD_24 / NH4_24
+            df = pd.DataFrame.from_dict({
+                'Parameter': ['COD (mg/l)', 'NH4 (mg/l)', 'COD/NH4 (-)'],
+                'Now': [f'{COD_now:.2f}', f'{NH4_now:.2f}', f'{ratio_now:.2f}'],
+                'Last 24 hrs': [f'{COD_24:.2f}', f'{NH4_24:.2f}', f'{ratio_24:.2f}'],
+            })
+        return df.to_dict('records')
+
 
 
 @app.callback(
     Output('InfluentLoad', 'figure'),
-    [Input('avn-db-store', 'data')],
+    [Input('avn-db-store', 'n_intervals')],
     [State('avn-db-store', 'data')])
 def update_Influentload_stats(refresh, data):
     import plotly.graph_objects as go
@@ -389,6 +403,8 @@ def update_Influentload_stats(refresh, data):
             raise PreventUpdate
         else:  # effluent stats
             fig=PlottingTools.violinplotInfluent(data, OFFSET)
+            print('influent load done')
+            print('working')
     return fig
 
 
@@ -560,10 +576,15 @@ def update_EnegryBilan(refresh, data):
     return fig
 
 #%%
-#app.run_server(debug=False)
+app.run_server(debug=False)
 
 
-if __name__ == '__main__':
-    app.run_server(debug=True)
+
+
+
+import importlib
+importlib.reload(PlottingTools)
+
+
 
 
