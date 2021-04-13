@@ -77,6 +77,7 @@ def AvN_shopping_list(beginning_string, ending_string):
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
+
 app.layout = html.Div(
     children=[
         dcc.Interval(id='refresh-interval', interval=NEW_DATA_INTERVAL * 1000, n_intervals=0),
@@ -140,7 +141,7 @@ app.layout = html.Div(
                                 html.Br(),
                                 html.Div(
                                     children=[
-                                        html.H4('Effluent'),
+                                        html.H4('Effluent', style={'text-align': 'left'}),
                                         dash_table.DataTable(
                                             id='effluent-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Now', 'Last 24 hrs']],
@@ -162,7 +163,7 @@ app.layout = html.Div(
                             children=[
                                 html.Div(
                                     children=[
-                                        html.H4('Cumulative Stats'),
+                                        html.H4('Cumulative Stats', style={'text-align': 'left'}),
                                         dash_table.DataTable(
                                             id='bioreactor-table',
                                             columns=[{"name": i, "id": i} for i in ['Parameter', 'Last 24 hrs']],
@@ -182,7 +183,7 @@ app.layout = html.Div(
                     style={
                         'float': 'right',
                         'width': '25%',
-                        'borderStyle': "solid",
+                        # 'borderStyle': "solid",
                         'display': 'inline-block',
                         'paddingLeft': '0%',
                         'paddingRight': '0%',
@@ -201,7 +202,7 @@ app.layout = html.Div(
     [State('avn-db-store', 'data')])
 def store_data(n, data):
     try:
-        _, conn = Dateaubase.create_connection()
+        _, conn = Dateaubase.create_connection(True)
     except Exception:
         raise PreventUpdate
     # print('Store update has started')
@@ -399,6 +400,6 @@ def update_biological_stats(refresh, data):
         })
         return df.to_dict('records')
 
-
+server = app.server
 if __name__ == '__main__':
     app.run_server(debug=True)

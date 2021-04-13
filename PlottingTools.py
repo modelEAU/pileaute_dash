@@ -189,7 +189,7 @@ def threefigs(df):
     # df = df.groupby(pd.Grouper(freq='300S')).first()
     fig = make_subplots(
         rows=3, cols=1,
-        specs=[[{'secondary_y': True}], [{}], [{}]],
+        specs=[[{'secondary_y': True}], [{}], [{'secondary_y': True}]],
         shared_xaxes=True,
     )
 
@@ -198,12 +198,12 @@ def threefigs(df):
     trace_nh4 = go.Scatter(
         x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000,
-        name='Ammonia',
+        name='NH4',
         mode='lines',
         connectgaps=True,
         line=dict(
             dash='solid',
-            color='blue'
+            color='firebrick'
         ),
     )
     fig.add_trace(trace_nh4, row=1, col=1, secondary_y=False)
@@ -212,68 +212,132 @@ def threefigs(df):
     trace_no3 = go.Scatter(
         x=time,
         y=df['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000,
-        name='Nitrate',
+        name='NO3',
         connectgaps=True,
         mode='lines',
         line=dict(
             dash='solid',
-            color='turquoise'
+            color='seagreen'
         )
     )
     fig.add_trace(trace_no3, row=1, col=1, secondary_y=False)
     # AvN
     trace_avn = go.Scatter(
         x=time,
-        y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N']
-        / df['pilEAUte-Pilote effluent-Varion_002-NO3_N'],
-        name='AvN ratio',
+        y=df['pilEAUte-Pilote effluent-Varion_002-NH4_N'] * 1000 - df['pilEAUte-Pilote effluent-Varion_002-NO3_N'] * 1000,
+        name='AvN difference',
         connectgaps=True,
         mode='lines+markers',
         line=dict(
             dash='solid',
-            color='orange'
+            color='royalblue'
         ),
         marker={
             'opacity': 0
         }
     )
+
+    trace_avn_sp = go.Scattergl(
+        x=df.index,
+        y=[0] * len(df.index),
+        name='AvN setpoint',
+        mode='lines',
+        legendgroup='leg3',
+        line=dict(
+            color='dimgrey',
+            dash="dash",
+        ),
+        marker={
+            'opacity': 0
+        }
+    )
+
     fig.add_trace(trace_avn, row=1, col=1, secondary_y=True)
+    fig.add_trace(trace_avn_sp, row=1, col=1, secondary_y=True)
 
     # Middle
     df_mid = df.rolling('300s').mean()
 
     flow_trace = go.Scatter(
         x=df_mid.index,
-        y=df_mid['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)'] * 1000 * 60,
+        y=df_mid['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)'] * 1000 * 60,
         connectgaps=True,
-        name='Aeration flow',
+        name='Airflow rate',
         mode='lines',
         line=dict(
             dash='solid',
-            color='red'
+            color='goldenrod',
+            shape='hv'
         ),
     )
+    fig.add_trace(flow_trace, row=2, col=1)
+
     # Average cycle
     avg_cycle_trace = go.Scatter(
         x=time,
-        y=df['pilEAUte-Pilote reactor 4-FIT_420-Flowrate (Gas)-avg cycle'] * 1000 * 60,
+        y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas)-avg cycle'] * 1000 * 60,
         connectgaps=True,
         name='Average cycle',
         mode='lines',
         line=dict(
             dash='solid',
-            color='green'
+            color='blueviolet',
+            shape='hvh'
         ),
     )
-    fig.add_trace(flow_trace, row=2, col=1)
-    fig.add_trace(avg_cycle_trace, row=3, col=1)
+    fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=False)
+
+    avg_cycle_trace = go.Scatter(
+        x=time,
+        y=df['pilEAUte-Pilote reactor 5-FIT_430-Flowrate (Gas) - fAE'] * 100,
+        connectgaps=True,
+        name='Aerobic fraction',
+        mode='lines',
+        line=dict(
+            dash='solid',
+            color='darksalmon',
+            shape='hvh'
+        ),
+    )
+
+    fig.add_trace(avg_cycle_trace, row=3, col=1, secondary_y=True)
+
+    # Subplot specific layouts
+    fig.update_yaxes(title_text="[mg/L]", title_font=dict(size=14), range=[0, 20], row=1, col=1, secondary_y=False)
+    fig.update_yaxes(title_text="[-]", title_font=dict(size=14), range=[-10, 10], row=1, col=1, secondary_y=True)
+    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14), range=[-50, 1000], row=2, col=1)
+    fig.update_yaxes(title_text="[L/min]", title_font=dict(size=14), range=[500, 1000], row=3, col=1, secondary_y=False)
+    fig.update_yaxes(title_text="[-]", title_font=dict(size=14), range=[0, 100], row=3, col=1, secondary_y=True)
+
+    # General figure layout
+    showgrid = True
+    gridcolor = 'rgb(204, 204, 204)'
+    gridwidth = 1
+
+    showline = True
+    linecolor = 'rgb(153, 153, 153)'
+    linewidth = 2
+
+    fig.update_xaxes(
+        showgrid=showgrid,
+        gridwidth=gridwidth,
+        gridcolor=gridcolor,
+        showline=showline,
+        linewidth=linewidth,
+        linecolor=linecolor,
+    )
+    fig.update_yaxes(
+        showgrid=showgrid,
+        gridwidth=gridwidth,
+        gridcolor=gridcolor,
+        showline=showline,
+        linewidth=linewidth,
+        linecolor=linecolor,
+    )
+
     fig.update_layout(height=800)
-    fig.update_yaxes(range=[0, 20], row=1, col=1, secondary_y=False)
-    fig.update_yaxes(range=[0, 2], row=1, col=1, secondary_y=True)
-    fig.update_yaxes(range=[0, 1000], row=2, col=1)
-    fig.update_yaxes(range=[800, 900], row=3, col=1)
     fig.update_layout(legend_orientation="h")
-    fig.update_layout(legend=dict(x=0, y=1.2))
+    fig.update_layout(legend=dict(x=0, y=1.1))
     # fig.show(config={'displayModeBar': False})
 
     return fig

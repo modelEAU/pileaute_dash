@@ -126,3 +126,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+__pycache__/Dateaubase.cpython-37.pyc
+__pycache__/Dateaubase.cpython-37.pyc
+.vscode/settings.json
+

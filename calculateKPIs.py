@@ -74,6 +74,8 @@ def peak_stats(df_column, threshold):
     buffer = []
     var_avg = []
     time_avg = []
+    fAE_val = []
+    cycle_time = 30
     for i in np.arange(0, len(var_jump) - 1, 1).tolist():
         if var_jump[i] == 1:
             buffer.append(var[var_high_indx[i]])
@@ -81,12 +83,14 @@ def peak_stats(df_column, threshold):
             buffer.append(var[var_high_indx[i]])
             var_avg.append(sum(buffer) / len(buffer))
             time_avg.append(time[var_high_indx[i] - round(len(buffer) / 2)])
+            fAE_val.append((cycle_time - var_jump[i] + 1) / cycle_time)
             buffer = []
-    # Create a new dataframe and return it
-    peak_avg = pd.DataFrame(list(zip(time_avg, var_avg)), columns=['datetime', df_column.name + '-avg cycle'])
 
+    # Create a new dataframe and return it
+    peak_avg = pd.DataFrame(list(zip(time_avg, var_avg, fAE_val)), columns=['datetime', df_column.name + '-avg cycle', df_column.name + ' - fAE'])
     peak_avg.set_index('datetime', inplace=True)
     peak_avg.index = peak_avg.index.tz_localize("UTC")
+
     # Calculate the average for the entire dataframe
     if len(var_avg) != 0:
         peak_avg_overall = sum(var_avg) / len(var_avg)
