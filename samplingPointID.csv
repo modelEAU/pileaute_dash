@@ -1,0 +1,33 @@
+Sampling_point_ID,Sampling_point,Sampling_location,Site_ID,Latitude_GPS,Longitude_GPS,Description,Picture
+1,PST_INF,Primary settling tank influent,2,0,0,Primary settling tank influent,NULL
+2,PST_EFF,Primary settling tank effluent,2,0,0,Primary settling tank effluent,NULL
+3,PIL_R1,Pilote reactor 1,2,0,0,Pilote reactor 1,NULL
+4,PIL_R2,Pilote reactor 2,2,0,0,Pilote reactor 2,NULL
+5,PIL_R3,Pilote reactor 3,2,0,0,Pilote reactor 3,NULL
+6,PIL_R4,Pilote reactor 4,2,0,0,Pilote reactor 4,NULL
+7,PIL_R5,Pilote reactor 5,2,0,0,Pilote reactor 5,NULL
+8,PIL_IRIN,Pilote internal recycle IN,2,0,0,Pilote internal recycle IN,NULL
+9,PIL_IROUT,Pilote internal recycle OUT,2,0,0,Pilote internal recycle OUT,NULL
+10,PIL_EFF,Pilote effluent,2,0,0,Pilote effluent,NULL
+11,PIL_SR,Pilote sludge recycle,2,0,0,Pilote sludge recycle,NULL
+12,PIL_SST,Pilote secondary settling tank,2,0,0,Pilote secondary settling tank,NULL
+13,PIL_WW,Pilote wet weather,2,0,0,Pilote wet weather,NULL
+14,PIL_INF,Pilote influent,2,0,0,Pilote influent,NULL
+15,COP_R1,Copilote reactor 1,2,0,0,Copilote reactor 1,NULL
+16,COP_R2,Copilote reactor 2,2,0,0,Copilote reactor 2,NULL
+17,COP_R3,Copilote reactor 3,2,0,0,Copilote reactor 3,NULL
+18,COP_R4,Copilote reactor 4,2,0,0,Copilote reactor 4,NULL
+19,COP_R5,Copilote reactor 5,2,0,0,Copilote reactor 5,NULL
+20,COP_IRIN,Copilote internal recycle IN,2,0,0,Copilote internal recycle IN,NULL
+21,COP_IROUT,Copilore internal recycle OUT,2,0,0,Copilore internal recycle OUT,NULL
+22,COP_SR,Copilote sludge recycle,2,0,0,Copilote sludge recycle,NULL
+23,COP_SST,Copilote secundary settling tank,2,0,0,Copilote secundary settling tank,NULL
+24,COP_WW,Copilote wet weather,2,0,0,Copilote wet weather,NULL
+25,COP_INF,Copilote influent,2,0,0,Copilote influent,NULL
+26,COP_EFF,Copilote effluent,2,0,0,Copilote effluent,NULL
+27,INF_KAMAK,KAMAK system influent,1,0,0,KAMAK system influent,NULL
+28,EFF_CL1,Outlet of the KAMAK first clarification zone,1,0,0,"KAMAK first clarification zone effluent ",NULL
+29,EFF_RX1,Outlet of the KAMAK first fixed-film reactor,1,0,0,KAMAK first reactor effluent,NULL
+30,EFF_CL2,Outlet of the KAMAK second clarification zone,1,0,0,KAMAK second clarification zone effluent,NULL
+31,EFF_RX2,Outlet of the KAMAK second reactor,1,0,0,KAMAK second reactor effluent,NULL
+32,EFF_KAMAK,Outlet of the KAMAK third clarification zone,1,0,0,KAMAK system effluent,NULL
